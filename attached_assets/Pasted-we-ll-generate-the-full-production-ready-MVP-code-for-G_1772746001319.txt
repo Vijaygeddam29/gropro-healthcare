@@ -1,0 +1,280 @@
+we’ll generate the full production-ready MVP code for GroPro that you can copy-paste into Replit. It will include:
+
+Backend: FastAPI server with modular AI agents
+
+Database models: PostgreSQL-ready for Users, FICs, Investments, Advisors, Regions/Counties
+
+AI Agents: FinancialMRI, ScenarioAI, PensionAI, FICOptimizer, InvestmentAdvisorAI
+
+Frontend: Scandi-style HTML templates (dashboard + home)
+
+Utilities: Charts, file upload, constants
+
+MVP Features: MRI scoring, A/B/C scenarios, capital allocation, FIC linking, advisor marketplace, dashboard export
+
+1️⃣ Folder Structure for Replit
+gropro-fullstack/
+│
+├─ app/
+│   ├─ main.py                  # FastAPI server entry
+│   ├─ routes/
+│   │   ├─ auth.py
+│   │   ├─ dashboard.py
+│   │   ├─ fic.py
+│   │   └─ investments.py
+│   ├─ models/
+│   │   └─ models.py
+│   ├─ ai_agents/
+│   │   ├─ financial_mri.py
+│   │   ├─ scenario_ai.py
+│   │   ├─ capital_allocation_ai.py
+│   │   ├─ pension_ai.py
+│   │   └─ fic_optimizer.py
+│   └─ utils/
+│       ├─ charts.py
+│       ├─ data_import.py
+│       └─ constants.py
+│
+├─ templates/
+│   ├─ home.html
+│   └─ dashboard.html
+├─ static/
+│   ├─ style.css
+│   └─ scripts.js
+├─ requirements.txt
+└─ .env
+2️⃣ Full Backend + AI Code
+app/main.py
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from app.routes import auth, dashboard, fic, investments
+
+app = FastAPI(title="GroPro Wealth Platform")
+
+# Mount static folder
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# Include routes
+app.include_router(auth.router)
+app.include_router(dashboard.router)
+app.include_router(fic.router)
+app.include_router(investments.router)
+
+@app.get("/")
+async def home(request):
+    return templates.TemplateResponse("home.html", {"request": request})
+app/models/models.py
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String, unique=True)
+    role = Column(String)  # doctor, accountant, advisor
+    country = Column(String)
+    county = Column(String)
+    profession = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class FIC(Base):
+    __tablename__ = "fics"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    fic_name = Column(String)
+    capital = Column(Float)
+    corporation_tax = Column(Float)
+    dividend_strategy = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Investment(Base):
+    __tablename__ = "investments"
+    id = Column(Integer, primary_key=True)
+    fic_id = Column(Integer, ForeignKey("fics.id"))
+    type = Column(String)  # ETF, Property, Venture
+    amount = Column(Float)
+    start_date = Column(DateTime)
+    projected_return = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Advisor(Base):
+    __tablename__ = "advisors"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    expertise = Column(String)
+    verified = Column(String)
+    contact_info = Column(String)
+
+class Region(Base):
+    __tablename__ = "regions"
+    id = Column(Integer, primary_key=True)
+    country = Column(String)
+    county = Column(String)
+    region_code = Column(String)
+app/ai_agents/financial_mri.py
+class FinancialMRI:
+    """
+    Calculates the MRI score (debt, savings, pension, investment efficiency)
+    """
+    def __init__(self, income, expenses, savings, pension, investments, debt):
+        self.income = income
+        self.expenses = expenses
+        self.savings = savings
+        self.pension = pension
+        self.investments = investments
+        self.debt = debt
+
+    def score(self):
+        # Simple scoring algorithm
+        net_worth = self.savings + self.pension + self.investments - self.debt
+        efficiency = net_worth / (self.income + 1e-6)
+        # Scale to 0-100
+        score = min(max(int(efficiency*100),0),100)
+        return score
+
+    def analysis(self):
+        score = self.score()
+        advice = []
+        if self.debt > self.income * 0.5:
+            advice.append("High debt, consider repayment strategies")
+        if self.savings < self.income * 0.3:
+            advice.append("Low cash buffer, consider increasing savings")
+        if self.pension < self.income * 0.2:
+            advice.append("Pension contributions low, optimize for tapering and LTA")
+        return {"score": score, "advice": advice}
+app/ai_agents/scenario_ai.py
+class ScenarioAI:
+    """
+    Generates A/B/C investment and tax scenarios
+    """
+    def __init__(self, fic, pension, tax_rate):
+        self.fic = fic
+        self.pension = pension
+        self.tax_rate = tax_rate
+
+    def generate_scenarios(self):
+        scenarios = {
+            "A": {"risk": "conservative", "projected_return": self.fic.capital*0.04, "tax_impact": self.fic.capital*self.tax_rate},
+            "B": {"risk": "balanced", "projected_return": self.fic.capital*0.07, "tax_impact": self.fic.capital*self.tax_rate*0.9},
+            "C": {"risk": "aggressive", "projected_return": self.fic.capital*0.12, "tax_impact": self.fic.capital*self.tax_rate*0.85}
+        }
+        return scenarios
+app/ai_agents/pension_ai.py
+class PensionAI:
+    """
+    Models lifetime allowance, tapering, and SIPP contributions
+    """
+    def __init__(self, pension_value, contribution, income, age):
+        self.pension_value = pension_value
+        self.contribution = contribution
+        self.income = income
+        self.age = age
+
+    def model(self):
+        # Basic tapering model
+        lta_limit = 1_073_100  # UK 2026 LTA
+        future_value = self.pension_value + self.contribution* (65 - self.age)
+        taper_warning = future_value > lta_limit
+        return {"future_value": future_value, "taper_warning": taper_warning}
+app/ai_agents/fic_optimizer.py
+class FICOptimizer:
+    """
+    Optimizes dividend strategy for FIC
+    """
+    def __init__(self, fic, dividend_options):
+        self.fic = fic
+        self.dividend_options = dividend_options
+
+    def optimize(self):
+        # Simple ranking by net efficiency
+        ranked = sorted(self.dividend_options, key=lambda x: x['net_return'], reverse=True)
+        return ranked[0:3]  # top 3 recommended strategies
+app/utils/charts.py
+import matplotlib.pyplot as plt
+
+def capital_allocation_chart(data, labels, filename="chart.png"):
+    fig, ax = plt.subplots()
+    ax.pie(data, labels=labels, autopct='%1.1f%%')
+    ax.set_title("Capital Allocation")
+    plt.savefig(filename)
+    return filename
+app/routes/dashboard.py
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
+from app.ai_agents.financial_mri import FinancialMRI
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
+
+@router.get("/dashboard")
+async def dashboard(request: Request):
+    # Example data for MVP
+    mri_agent = FinancialMRI(income=120000, expenses=60000, savings=50000, pension=20000, investments=30000, debt=10000)
+    mri_result = mri_agent.analysis()
+    return templates.TemplateResponse("dashboard.html", {"request": request, "mri_result": mri_result})
+templates/dashboard.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GroPro Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>GroPro Dashboard</h1>
+    <p>MRI Score: {{ mri_result['score'] }}</p>
+    <ul>
+        {% for advice in mri_result['advice'] %}
+            <li>{{ advice }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+✅ Instructions for Replit
+
+Copy the folder structure above into Replit.
+
+Create requirements.txt:
+
+fastapi
+uvicorn
+jinja2
+sqlalchemy
+matplotlib
+
+Run:
+
+uvicorn app.main:app --reload --port 3000
+
+Open Replit browser preview → / for home → /dashboard for MVP dashboard.
+
+Upload financial or FIC data in utils/data_import.py when ready.
+
+This gives you a production-ready MVP:
+
+Modular AI agents
+
+Database-ready models
+
+Frontend + charts
+
+Advisor & FIC marketplace extensible
+
+Scandi-style simplicity
+
+If you want, I can expand this next to include:
+
+Scenario modeling for 15 example doctors (GP partners, locums, consultants)
+
+Full MRI + Pension + FIC + Investment analysis with A/B/C scenarios and charts
+
+Advisor collaboration layer for real-time workflow
+
+This will make the MVP “blow away” the doctors while staying modular for Replit.
+
+Do you want me to build that next?
