@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GroPro Onboarding</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .wizard-progress{display:flex;justify-content:center;gap:0;margin-bottom:48px;flex-wrap:wrap;}
+        .wizard-step-indicator{display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;}
+        .step-dot{width:28px;height:28px;border:1px solid var(--pale);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--light);background:var(--white);transition:all 0.3s;flex-shrink:0;}
+        .step-dot.active{background:var(--black);color:var(--white);border-color:var(--black);}
+        .step-dot.completed{background:var(--dark);color:var(--white);border-color:var(--dark);}
+        .step-line{width:24px;height:1px;background:var(--pale);flex-shrink:0;}
+        .step-line.completed{background:var(--black);}
+        .wizard-panel{display:none;animation:fadeIn 0.3s ease;}
+        .wizard-panel.active{display:block;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        .step-title{font-size:22px;font-weight:300;margin-bottom:8px;letter-spacing:-0.01em;}
+        .step-subtitle{font-size:13px;color:var(--mid);margin-bottom:24px;font-weight:300;}
+        .section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--black);margin-bottom:12px;margin-top:28px;}
+        .option-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1px;background:var(--pale);border:1px solid var(--pale);margin-bottom:20px;}
+        .option-card{background:var(--white);padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.2s;user-select:none;}
+        .option-card:hover{background:var(--bg);}
+        .option-card.selected{background:var(--black);color:var(--white);}
+        .option-card .option-label{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;}
+        .option-card .option-desc{font-size:10px;color:var(--light);margin-top:3px;font-weight:300;}
+        .option-card.selected .option-desc{color:var(--pale);}
+        .sub-question{display:none;margin:12px 0 20px;padding:16px;border:1px solid var(--pale);background:var(--bg);}
+        .sub-question.visible{display:block;}
+        .sub-question .section-label{margin-top:0;}
+        .range-group{margin-bottom:20px;}
+        .range-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+        .range-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);}
+        .range-value{font-size:13px;font-weight:400;color:var(--black);}
+        input[type="range"]{width:100%;height:2px;-webkit-appearance:none;appearance:none;background:var(--pale);outline:none;cursor:pointer;}
+        input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--black);cursor:pointer;}
+        input[type="range"]::-moz-range-thumb{width:14px;height:14px;background:var(--black);border:none;cursor:pointer;}
+        .dynamic-section{border:1px solid var(--pale);padding:20px;margin-bottom:16px;background:var(--white);}
+        .dynamic-section h4{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;color:var(--mid);}
+        .add-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px dashed var(--border);background:var(--white);cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;color:var(--mid);transition:all 0.2s;margin-bottom:20px;}
+        .add-btn:hover{border-color:var(--black);color:var(--black);}
+        .doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1px;background:var(--pale);border:1px solid var(--pale);margin-bottom:20px;}
+        .doc-card{background:var(--white);padding:14px 12px;cursor:pointer;transition:all 0.2s;user-select:none;position:relative;}
+        .doc-card:hover{background:var(--bg);}
+        .doc-card.selected{background:var(--black);color:var(--white);}
+        .doc-card .doc-name{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;}
+        .doc-card .doc-desc{font-size:10px;color:var(--light);margin-top:3px;font-weight:300;}
+        .doc-card.selected .doc-desc{color:var(--pale);}
+        .doc-card .check-mark{position:absolute;top:6px;right:8px;font-size:12px;display:none;}
+        .doc-card.selected .check-mark{display:block;}
+        .upload-zone{border:1px dashed var(--border);padding:28px;text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:20px;}
+        .upload-zone:hover{border-color:var(--black);}
+        .upload-zone p{font-size:12px;color:var(--mid);}
+        .upload-zone .upload-label{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;color:var(--black);margin-bottom:4px;}
+        .uploaded-files{list-style:none;padding:0;}
+        .uploaded-files li{font-size:11px;padding:6px 0;border-bottom:1px solid var(--pale);display:flex;justify-content:space-between;}
+        .wizard-nav{display:flex;justify-content:space-between;margin-top:36px;padding-top:20px;border-top:1px solid var(--pale);}
+        .review-panel{background:var(--bg);border:1px solid var(--pale);padding:24px;margin-bottom:20px;}
+        .review-panel h4{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:12px;}
+        .review-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--pale);font-size:12px;}
+        .review-item:last-child{border-bottom:none;}
+        .review-key{color:var(--mid);font-weight:300;}
+        .review-val{font-weight:500;max-width:60%;text-align:right;}
+        .ai-review-box{border:1px solid var(--pale);padding:24px;margin-bottom:20px;background:var(--white);}
+        .ai-review-box h4{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+        .ai-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--pale);font-size:12px;font-weight:300;color:var(--mid);}
+        .ai-item:last-child{border-bottom:none;}
+        .ai-dot{width:5px;height:5px;background:var(--black);margin-top:5px;flex-shrink:0;}
+        .ai-dot.warning{background:var(--mid);}
+        .ai-loading{text-align:center;padding:32px;font-size:12px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;}
+        .gap-question{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--pale);font-size:12px;}
+        .gap-question:last-child{border-bottom:none;}
+        .gap-question span{color:var(--mid);font-weight:300;flex:1;}
+        .gap-btns{display:flex;gap:6px;flex-shrink:0;}
+        .gap-btn{padding:4px 14px;border:1px solid var(--pale);background:var(--white);cursor:pointer;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;transition:all 0.2s;}
+        .gap-btn:hover,.gap-btn.active{background:var(--black);color:var(--white);border-color:var(--black);}
+        .income-stream-item{margin-bottom:12px;}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/fic/">FIC Management</a>
+            <a href="/investments/">Investments</a>
+            <a href="/marketplace">Advisors</a>
+            <a href="/onboarding" class="active">Edit Profile</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="wizard-progress">
+            <div class="wizard-step-indicator" id="step-indicators"></div>
+        </div>
+
+        <form id="onboarding-form" action="/onboarding" method="post" enctype="multipart/form-data">
+
+            <!-- STEP 1: PERSONAL -->
+            <div class="wizard-panel active" id="step-1">
+                <h2 class="step-title">Personal Details</h2>
+                <p class="step-subtitle">Basic information for tax residency and planning</p>
+
+                <p class="section-label">Age Range</p>
+                <div class="option-grid" data-testid="grid-age">
+                    <div class="option-card" data-value="25-30" data-field="age_range" data-testid="option-age-25-30"><div class="option-label">25 — 30</div></div>
+                    <div class="option-card" data-value="31-35" data-field="age_range" data-testid="option-age-31-35"><div class="option-label">31 — 35</div></div>
+                    <div class="option-card" data-value="36-40" data-field="age_range" data-testid="option-age-36-40"><div class="option-label">36 — 40</div></div>
+                    <div class="option-card" data-value="41-45" data-field="age_range" data-testid="option-age-41-45"><div class="option-label">41 — 45</div></div>
+                    <div class="option-card" data-value="46-50" data-field="age_range" data-testid="option-age-46-50"><div class="option-label">46 — 50</div></div>
+                    <div class="option-card" data-value="51-55" data-field="age_range" data-testid="option-age-51-55"><div class="option-label">51 — 55</div></div>
+                    <div class="option-card" data-value="56-60" data-field="age_range" data-testid="option-age-56-60"><div class="option-label">56 — 60</div></div>
+                    <div class="option-card" data-value="61-65" data-field="age_range" data-testid="option-age-61-65"><div class="option-label">61 — 65</div></div>
+                    <div class="option-card" data-value="65+" data-field="age_range" data-testid="option-age-65+"><div class="option-label">65+</div></div>
+                </div>
+
+                <p class="section-label">Marital Status</p>
+                <div class="option-grid" data-testid="grid-marital">
+                    <div class="option-card" data-value="single" data-field="marital_status" data-testid="option-marital-single"><div class="option-label">Single</div></div>
+                    <div class="option-card" data-value="married" data-field="marital_status" data-testid="option-marital-married"><div class="option-label">Married</div></div>
+                    <div class="option-card" data-value="civil_partner" data-field="marital_status" data-testid="option-marital-civil"><div class="option-label">Civil Partner</div></div>
+                    <div class="option-card" data-value="divorced" data-field="marital_status" data-testid="option-marital-divorced"><div class="option-label">Divorced</div></div>
+                    <div class="option-card" data-value="widowed" data-field="marital_status" data-testid="option-marital-widowed"><div class="option-label">Widowed</div></div>
+                </div>
+
+                <p class="section-label">Number of Dependants</p>
+                <div class="option-grid" data-testid="grid-dependants">
+                    <div class="option-card" data-value="0" data-field="dependants" data-testid="option-dep-0"><div class="option-label">0</div></div>
+                    <div class="option-card" data-value="1" data-field="dependants" data-testid="option-dep-1"><div class="option-label">1</div></div>
+                    <div class="option-card" data-value="2" data-field="dependants" data-testid="option-dep-2"><div class="option-label">2</div></div>
+                    <div class="option-card" data-value="3" data-field="dependants" data-testid="option-dep-3"><div class="option-label">3</div></div>
+                    <div class="option-card" data-value="4" data-field="dependants" data-testid="option-dep-4"><div class="option-label">4</div></div>
+                    <div class="option-card" data-value="5+" data-field="dependants" data-testid="option-dep-5"><div class="option-label">5+</div></div>
+                </div>
+
+                <p class="section-label">UK Tax Resident</p>
+                <div class="option-grid" data-testid="grid-residency">
+                    <div class="option-card" data-value="yes" data-field="uk_resident" data-testid="option-res-yes"><div class="option-label">Yes</div></div>
+                    <div class="option-card" data-value="no" data-field="uk_resident" data-testid="option-res-no"><div class="option-label">No</div></div>
+                </div>
+
+                <input type="hidden" name="age_range" id="field-age_range">
+                <input type="hidden" name="marital_status" id="field-marital_status">
+                <input type="hidden" name="dependants" id="field-dependants">
+                <input type="hidden" name="uk_resident" id="field-uk_resident">
+
+                <div class="wizard-nav">
+                    <div></div>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(2)" data-testid="button-next-1">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 2: PROFESSIONAL ROLES -->
+            <div class="wizard-panel" id="step-2">
+                <h2 class="step-title">Professional Roles</h2>
+                <p class="step-subtitle">Select all that apply — this determines your income sources and tax structures</p>
+
+                <div class="option-grid" data-testid="grid-roles">
+                    <div class="option-card multi" data-value="paye" data-field="roles" data-testid="option-role-paye"><div class="option-label">PAYE</div><div class="option-desc">Employed / salaried</div></div>
+                    <div class="option-card multi" data-value="nhs_consultant" data-field="roles" data-testid="option-role-nhs-consultant"><div class="option-label">NHS Consultant</div><div class="option-desc">Hospital consultant</div></div>
+                    <div class="option-card multi" data-value="gp_partner" data-field="roles" data-testid="option-role-gp-partner"><div class="option-label">GP Partner</div><div class="option-desc">Practice partnership</div></div>
+                    <div class="option-card multi" data-value="gp_salaried" data-field="roles" data-testid="option-role-gp-salaried"><div class="option-label">Salaried GP</div><div class="option-desc">Employed by practice</div></div>
+                    <div class="option-card multi" data-value="locum" data-field="roles" data-testid="option-role-locum"><div class="option-label">Locum</div><div class="option-desc">Sessional / freelance</div></div>
+                    <div class="option-card multi" data-value="private_practice" data-field="roles" data-testid="option-role-private"><div class="option-label">Private Practice</div><div class="option-desc">Self-employed private</div></div>
+                    <div class="option-card multi" data-value="ltd_director" data-field="roles" data-testid="option-role-ltd"><div class="option-label">Ltd Company Director</div><div class="option-desc">Personal service co</div></div>
+                    <div class="option-card multi" data-value="partnership" data-field="roles" data-testid="option-role-partnership"><div class="option-label">Partnership</div><div class="option-desc">Business partnership</div></div>
+                    <div class="option-card multi" data-value="fic_director" data-field="roles" data-testid="option-role-fic"><div class="option-label">FIC Director</div><div class="option-desc">Family investment co</div></div>
+                    <div class="option-card multi" data-value="teaching" data-field="roles" data-testid="option-role-teaching"><div class="option-label">Teaching</div><div class="option-desc">Academic / university</div></div>
+                    <div class="option-card multi" data-value="research" data-field="roles" data-testid="option-role-research"><div class="option-label">Research</div><div class="option-desc">Clinical trials / grants</div></div>
+                    <div class="option-card multi" data-value="medico_legal" data-field="roles" data-testid="option-role-medico-legal"><div class="option-label">Medico-Legal</div><div class="option-desc">Expert witness / reports</div></div>
+                </div>
+
+                <div class="sub-question" id="sq-locum">
+                    <p class="section-label">IR35 Status for Locum Work</p>
+                    <div class="option-grid">
+                        <div class="option-card" data-value="inside" data-field="ir35_status"><div class="option-label">Inside IR35</div></div>
+                        <div class="option-card" data-value="outside" data-field="ir35_status"><div class="option-label">Outside IR35</div></div>
+                        <div class="option-card" data-value="unsure" data-field="ir35_status"><div class="option-label">Unsure</div></div>
+                    </div>
+                </div>
+
+                <div class="sub-question" id="sq-private">
+                    <p class="section-label">How is Private Practice Income Received?</p>
+                    <div class="option-grid">
+                        <div class="option-card" data-value="sole_trader" data-field="private_structure"><div class="option-label">Sole Trader</div></div>
+                        <div class="option-card" data-value="through_company" data-field="private_structure"><div class="option-label">Through Company</div></div>
+                        <div class="option-card" data-value="unsure" data-field="private_structure"><div class="option-label">Unsure</div></div>
+                    </div>
+                </div>
+
+                <div class="sub-question" id="sq-ir35-factors">
+                    <p class="section-label">IR35 Assessment Factors (ITEPA 2003, Chapter 10)</p>
+                    <p style="font-size:11px;color:var(--light);margin-bottom:12px;font-weight:300;">Answer these to assess your IR35 risk for Ltd company / locum contracts</p>
+
+                    <div class="gap-question"><span>Does the client control how you do the work?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="control" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="control" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Can you send a substitute to do the work?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="substitution" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="substitution" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Is there mutual obligation to provide/accept work?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="moo" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="moo" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Do you use your own equipment?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="equipment" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="equipment" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Do you bear financial risk (e.g. rectifying errors at own cost)?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="financial_risk" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="financial_risk" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Are you part of the client's organisation (e.g. ID badge, rota)?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="part_of_org" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="part_of_org" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Do you work for multiple clients?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="multiple_clients" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="multiple_clients" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Do you receive employee benefits (holiday pay, sick pay)?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="benefits" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="benefits" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                    <div class="gap-question"><span>Does the contract state self-employment?</span><div class="gap-btns"><button type="button" class="gap-btn" data-ir35="intention" data-val="true" onclick="setIR35Factor(this)">Yes</button><button type="button" class="gap-btn" data-ir35="intention" data-val="false" onclick="setIR35Factor(this)">No</button></div></div>
+                </div>
+
+                <input type="hidden" name="roles" id="field-roles">
+                <input type="hidden" name="ir35_status" id="field-ir35_status">
+                <input type="hidden" name="private_structure" id="field-private_structure">
+                <input type="hidden" name="ir35_factors" id="field-ir35_factors">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(1)" data-testid="button-back-2">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(3)" data-testid="button-next-2">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: INCOME STREAMS -->
+            <div class="wizard-panel" id="step-3">
+                <h2 class="step-title">Income Streams</h2>
+                <p class="step-subtitle">Set the approximate annual amount for each income source</p>
+
+                <div id="income-streams-container"></div>
+
+                <p class="section-label" style="margin-top:28px;">Additional Income</p>
+                <div class="range-group">
+                    <div class="range-label-row"><span class="range-label">Rental Income</span><span class="range-value" id="val-rental">&pound;0</span></div>
+                    <input type="range" data-stream="rental_income" min="0" max="200000" step="2500" value="0" oninput="updateRange(this,'val-rental');updateIncomeStreams()" data-testid="range-rental">
+                </div>
+                <div class="range-group">
+                    <div class="range-label-row"><span class="range-label">Investment / Dividend Income</span><span class="range-value" id="val-dividends">&pound;0</span></div>
+                    <input type="range" data-stream="dividend_income" min="0" max="200000" step="2500" value="0" oninput="updateRange(this,'val-dividends');updateIncomeStreams()" data-testid="range-dividends">
+                </div>
+
+                <input type="hidden" name="income_streams" id="field-income_streams">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(2)" data-testid="button-back-3">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(4)" data-testid="button-next-3">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 4: TAX STATUS -->
+            <div class="wizard-panel" id="step-4">
+                <h2 class="step-title">Tax Status</h2>
+                <p class="step-subtitle">How you are taxed determines your optimisation options</p>
+
+                <p class="section-label">Tax Filing</p>
+                <div class="option-grid" data-testid="grid-tax-filing">
+                    <div class="option-card" data-value="paye_only" data-field="tax_filing"><div class="option-label">PAYE Only</div><div class="option-desc">Employer deducts tax</div></div>
+                    <div class="option-card" data-value="self_assessment" data-field="tax_filing"><div class="option-label">Self Assessment</div><div class="option-desc">You file a return</div></div>
+                    <div class="option-card" data-value="both" data-field="tax_filing"><div class="option-label">Both</div><div class="option-desc">PAYE + self assessment</div></div>
+                </div>
+
+                <p class="section-label">Tax Code</p>
+                <div class="option-grid" data-testid="grid-tax-code">
+                    <div class="option-card" data-value="1257L" data-field="tax_code"><div class="option-label">1257L</div><div class="option-desc">Standard allowance</div></div>
+                    <div class="option-card" data-value="BR" data-field="tax_code"><div class="option-label">BR</div><div class="option-desc">Basic rate all income</div></div>
+                    <div class="option-card" data-value="D0" data-field="tax_code"><div class="option-label">D0</div><div class="option-desc">Higher rate all income</div></div>
+                    <div class="option-card" data-value="D1" data-field="tax_code"><div class="option-label">D1</div><div class="option-desc">Additional rate</div></div>
+                    <div class="option-card" data-value="K_code" data-field="tax_code"><div class="option-label">K Code</div><div class="option-desc">Benefits exceed allowance</div></div>
+                    <div class="option-card" data-value="other" data-field="tax_code"><div class="option-label">Other / Unsure</div><div class="option-desc">Not listed above</div></div>
+                </div>
+
+                <p class="section-label">Student Loan</p>
+                <div class="option-grid" data-testid="grid-student-loan">
+                    <div class="option-card" data-value="none" data-field="student_loan"><div class="option-label">None</div></div>
+                    <div class="option-card" data-value="plan_1" data-field="student_loan"><div class="option-label">Plan 1</div><div class="option-desc">Before Sep 2012</div></div>
+                    <div class="option-card" data-value="plan_2" data-field="student_loan"><div class="option-label">Plan 2</div><div class="option-desc">After Sep 2012</div></div>
+                    <div class="option-card" data-value="plan_4" data-field="student_loan"><div class="option-label">Plan 4</div><div class="option-desc">Scotland</div></div>
+                    <div class="option-card" data-value="plan_5" data-field="student_loan"><div class="option-label">Plan 5</div><div class="option-desc">From Sep 2023</div></div>
+                    <div class="option-card" data-value="postgrad" data-field="student_loan"><div class="option-label">Postgrad</div><div class="option-desc">Postgraduate loan</div></div>
+                </div>
+
+                <div class="range-group" style="margin-top:24px;">
+                    <div class="range-label-row"><span class="range-label">Tax Paid Last Year</span><span class="range-value" id="val-tax-paid">&pound;30,000</span></div>
+                    <input type="range" name="tax_paid" min="0" max="250000" step="2500" value="30000" oninput="updateRange(this,'val-tax-paid')" data-testid="range-tax-paid">
+                </div>
+
+                <input type="hidden" name="tax_filing" id="field-tax_filing">
+                <input type="hidden" name="tax_code" id="field-tax_code">
+                <input type="hidden" name="student_loan" id="field-student_loan">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(3)" data-testid="button-back-4">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(5)" data-testid="button-next-4">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 5: PENSIONS -->
+            <div class="wizard-panel" id="step-5">
+                <h2 class="step-title">Pensions</h2>
+                <p class="step-subtitle">Add each pension you hold — type, value, and contributions</p>
+
+                <div id="pensions-container">
+                    <div class="dynamic-section" data-pension-idx="0">
+                        <h4>Pension 1</h4>
+                        <p class="section-label" style="margin-top:0;">Pension Type</p>
+                        <div class="option-grid pension-type-grid">
+                            <div class="option-card" data-value="nhs_1995" data-field="pension_type_0"><div class="option-label">NHS 1995</div></div>
+                            <div class="option-card" data-value="nhs_2008" data-field="pension_type_0"><div class="option-label">NHS 2008</div></div>
+                            <div class="option-card" data-value="nhs_2015" data-field="pension_type_0"><div class="option-label">NHS 2015</div></div>
+                            <div class="option-card" data-value="sipp" data-field="pension_type_0"><div class="option-label">SIPP</div></div>
+                            <div class="option-card" data-value="personal" data-field="pension_type_0"><div class="option-label">Personal</div></div>
+                            <div class="option-card" data-value="workplace" data-field="pension_type_0"><div class="option-label">Workplace</div></div>
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Current Value</span><span class="range-value" id="val-pension-0">&pound;100,000</span></div>
+                            <input type="range" class="pension-value" data-idx="0" min="0" max="2000000" step="10000" value="100000" oninput="updateRange(this,'val-pension-0');updatePensions()">
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Annual Contribution</span><span class="range-value" id="val-pension-contrib-0">&pound;10,000</span></div>
+                            <input type="range" class="pension-contrib" data-idx="0" min="0" max="60000" step="1000" value="10000" oninput="updateRange(this,'val-pension-contrib-0');updatePensions()">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="add-btn" onclick="addPension()" data-testid="button-add-pension">+ Add Another Pension</button>
+
+                <input type="hidden" name="pensions_data" id="field-pensions_data">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(4)" data-testid="button-back-5">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(6)" data-testid="button-next-5">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 6: COMPANY STRUCTURES -->
+            <div class="wizard-panel" id="step-6">
+                <h2 class="step-title">Company Structures</h2>
+                <p class="step-subtitle">Add each company or partnership you hold a stake in</p>
+
+                <div id="companies-container">
+                    <div class="dynamic-section" data-company-idx="0">
+                        <h4>Company 1</h4>
+                        <p class="section-label" style="margin-top:0;">Company Type</p>
+                        <div class="option-grid company-type-grid">
+                            <div class="option-card" data-value="ltd" data-field="company_type_0"><div class="option-label">Ltd</div><div class="option-desc">Limited company</div></div>
+                            <div class="option-card" data-value="llp" data-field="company_type_0"><div class="option-label">LLP</div><div class="option-desc">Limited liability</div></div>
+                            <div class="option-card" data-value="fic" data-field="company_type_0"><div class="option-label">FIC</div><div class="option-desc">Family investment co</div></div>
+                            <div class="option-card" data-value="partnership" data-field="company_type_0"><div class="option-label">Partnership</div><div class="option-desc">GP practice etc</div></div>
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Your Shareholding</span><span class="range-value" id="val-share-0">100%</span></div>
+                            <input type="range" class="company-share" data-idx="0" min="0" max="100" step="5" value="100" oninput="document.getElementById('val-share-0').textContent=this.value+'%';updateCompanies()">
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Other Shareholders</span><span class="range-value" id="val-others-0">0</span></div>
+                            <input type="range" class="company-others" data-idx="0" min="0" max="10" step="1" value="0" oninput="document.getElementById('val-others-0').textContent=this.value;updateCompanies()">
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Annual Turnover</span><span class="range-value" id="val-turnover-0">&pound;100,000</span></div>
+                            <input type="range" class="company-turnover" data-idx="0" min="0" max="2000000" step="10000" value="100000" oninput="updateRange(this,'val-turnover-0');updateCompanies()">
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Retained Profits</span><span class="range-value" id="val-retained-0">&pound;50,000</span></div>
+                            <input type="range" class="company-retained" data-idx="0" min="0" max="1000000" step="5000" value="50000" oninput="updateRange(this,'val-retained-0');updateCompanies()">
+                        </div>
+                        <div class="range-group">
+                            <div class="range-label-row"><span class="range-label">Dividends Paid (Annual)</span><span class="range-value" id="val-divs-0">&pound;30,000</span></div>
+                            <input type="range" class="company-divs" data-idx="0" min="0" max="500000" step="5000" value="30000" oninput="updateRange(this,'val-divs-0');updateCompanies()">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-bottom:20px;">
+                    <button type="button" class="add-btn" onclick="addCompany()" data-testid="button-add-company">+ Add Another Company</button>
+                    <button type="button" class="add-btn" onclick="skipCompanies()" data-testid="button-no-company">No Companies</button>
+                </div>
+
+                <input type="hidden" name="companies_data" id="field-companies_data">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(5)" data-testid="button-back-6">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(7)" data-testid="button-next-6">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 7: INVESTMENTS -->
+            <div class="wizard-panel" id="step-7">
+                <h2 class="step-title">Investments</h2>
+                <p class="step-subtitle">Set the approximate value held in each wrapper</p>
+
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Cash ISA</span><span class="range-value" id="val-cash-isa">&pound;0</span></div><input type="range" data-wrapper="cash_isa" min="0" max="500000" step="5000" value="0" oninput="updateRange(this,'val-cash-isa');updateInvestments()" data-testid="range-cash-isa"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Stocks &amp; Shares ISA</span><span class="range-value" id="val-ss-isa">&pound;0</span></div><input type="range" data-wrapper="stocks_shares_isa" min="0" max="1000000" step="5000" value="0" oninput="updateRange(this,'val-ss-isa');updateInvestments()" data-testid="range-ss-isa"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">General Investment Account (GIA)</span><span class="range-value" id="val-gia">&pound;0</span></div><input type="range" data-wrapper="gia" min="0" max="2000000" step="10000" value="0" oninput="updateRange(this,'val-gia');updateInvestments()" data-testid="range-gia"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">VCT (Venture Capital Trust)</span><span class="range-value" id="val-vct">&pound;0</span></div><input type="range" data-wrapper="vct" min="0" max="500000" step="5000" value="0" oninput="updateRange(this,'val-vct');updateInvestments()" data-testid="range-vct"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">EIS / SEIS</span><span class="range-value" id="val-eis">&pound;0</span></div><input type="range" data-wrapper="eis_seis" min="0" max="500000" step="5000" value="0" oninput="updateRange(this,'val-eis');updateInvestments()" data-testid="range-eis"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Buy-to-Let Property</span><span class="range-value" id="val-btl">&pound;0</span></div><input type="range" data-wrapper="buy_to_let" min="0" max="3000000" step="25000" value="0" oninput="updateRange(this,'val-btl');updateInvestments()" data-testid="range-btl"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Other Investments</span><span class="range-value" id="val-other-inv">&pound;0</span></div><input type="range" data-wrapper="other" min="0" max="1000000" step="10000" value="0" oninput="updateRange(this,'val-other-inv');updateInvestments()" data-testid="range-other-inv"></div>
+
+                <input type="hidden" name="investment_wrappers" id="field-investment_wrappers">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(6)" data-testid="button-back-7">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(8)" data-testid="button-next-7">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 8: DEBTS -->
+            <div class="wizard-panel" id="step-8">
+                <h2 class="step-title">Debts &amp; Liabilities</h2>
+                <p class="step-subtitle">Outstanding balances — each type affects your MRI score differently</p>
+
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Mortgage Balance</span><span class="range-value" id="val-mortgage">&pound;0</span></div><input type="range" data-debt="mortgage" min="0" max="2000000" step="10000" value="0" oninput="updateRange(this,'val-mortgage');updateDebts()" data-testid="range-mortgage"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Student Loan Balance</span><span class="range-value" id="val-student-debt">&pound;0</span></div><input type="range" data-debt="student_loan" min="0" max="200000" step="5000" value="0" oninput="updateRange(this,'val-student-debt');updateDebts()" data-testid="range-student-debt"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Car Finance</span><span class="range-value" id="val-car">&pound;0</span></div><input type="range" data-debt="car_finance" min="0" max="100000" step="2500" value="0" oninput="updateRange(this,'val-car');updateDebts()" data-testid="range-car"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Credit Cards</span><span class="range-value" id="val-cc">&pound;0</span></div><input type="range" data-debt="credit_cards" min="0" max="100000" step="1000" value="0" oninput="updateRange(this,'val-cc');updateDebts()" data-testid="range-cc"></div>
+                <div class="range-group"><div class="range-label-row"><span class="range-label">Other Loans</span><span class="range-value" id="val-other-loans">&pound;0</span></div><input type="range" data-debt="other_loans" min="0" max="500000" step="5000" value="0" oninput="updateRange(this,'val-other-loans');updateDebts()" data-testid="range-other-loans"></div>
+
+                <input type="hidden" name="debt_breakdown" id="field-debt_breakdown">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(7)" data-testid="button-back-8">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(9)" data-testid="button-next-8">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 9: DOCUMENTS -->
+            <div class="wizard-panel" id="step-9">
+                <h2 class="step-title">Documents</h2>
+                <p class="step-subtitle">Select which documents you have available, then upload</p>
+
+                <div class="doc-grid" data-testid="grid-documents">
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="sa302" data-testid="doc-sa302"><span class="check-mark">&#10003;</span><div class="doc-name">SA302</div><div class="doc-desc">Tax calculation</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="tax_return" data-testid="doc-tax-return"><span class="check-mark">&#10003;</span><div class="doc-name">Tax Return</div><div class="doc-desc">Self-assessment</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="p60" data-testid="doc-p60"><span class="check-mark">&#10003;</span><div class="doc-name">P60</div><div class="doc-desc">End of year cert</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="p45" data-testid="doc-p45"><span class="check-mark">&#10003;</span><div class="doc-name">P45</div><div class="doc-desc">Leaving employment</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="payslips" data-testid="doc-payslips"><span class="check-mark">&#10003;</span><div class="doc-name">Payslips</div><div class="doc-desc">Recent payslips</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="nhs_pension" data-testid="doc-nhs-pension"><span class="check-mark">&#10003;</span><div class="doc-name">NHS Pension</div><div class="doc-desc">Annual benefit stmt</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="sipp_statement" data-testid="doc-sipp"><span class="check-mark">&#10003;</span><div class="doc-name">SIPP Statement</div><div class="doc-desc">Self-invested pension</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="company_accounts" data-testid="doc-company-accounts"><span class="check-mark">&#10003;</span><div class="doc-name">Company Accounts</div><div class="doc-desc">Annual accounts</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="ct600" data-testid="doc-ct600"><span class="check-mark">&#10003;</span><div class="doc-name">CT600</div><div class="doc-desc">Corporation tax return</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="dividend_vouchers" data-testid="doc-dividend"><span class="check-mark">&#10003;</span><div class="doc-name">Dividend Vouchers</div><div class="doc-desc">Dividend records</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="mortgage_statement" data-testid="doc-mortgage"><span class="check-mark">&#10003;</span><div class="doc-name">Mortgage Statement</div><div class="doc-desc">Outstanding balance</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="isa_statement" data-testid="doc-isa"><span class="check-mark">&#10003;</span><div class="doc-name">ISA Statement</div><div class="doc-desc">Cash / stocks ISA</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="investment_portfolio" data-testid="doc-portfolio"><span class="check-mark">&#10003;</span><div class="doc-name">Investment Portfolio</div><div class="doc-desc">Holdings / valuations</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="will" data-testid="doc-will"><span class="check-mark">&#10003;</span><div class="doc-name">Will</div><div class="doc-desc">Estate planning</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="insurance_policies" data-testid="doc-insurance"><span class="check-mark">&#10003;</span><div class="doc-name">Insurance</div><div class="doc-desc">Life / income protection</div></div>
+                    <div class="doc-card" onclick="toggleDoc(this)" data-value="other" data-testid="doc-other"><span class="check-mark">&#10003;</span><div class="doc-name">Other</div><div class="doc-desc">Any other docs</div></div>
+                </div>
+
+                <div class="upload-zone" onclick="document.getElementById('file-input').click()" data-testid="upload-zone">
+                    <p class="upload-label">Click to attach files</p>
+                    <p>PDF, images, or scanned documents (max 10MB each)</p>
+                </div>
+                <input type="file" name="files" id="file-input" multiple style="display:none" onchange="showFiles(this)" data-testid="input-files">
+                <ul class="uploaded-files" id="file-list"></ul>
+                <input type="hidden" name="document_types" id="field-document_types">
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(8)" data-testid="button-back-9">Back</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep(10)" data-testid="button-next-9">Review</button>
+                </div>
+            </div>
+
+            <!-- STEP 10: AI REVIEW -->
+            <div class="wizard-panel" id="step-10">
+                <h2 class="step-title">AI Review</h2>
+                <p class="step-subtitle">Our agents are analysing your complete financial profile</p>
+
+                <div class="ai-loading" id="ai-loading">Analysing your financial profile...</div>
+
+                <div id="ai-results" style="display:none;">
+                    <div class="review-panel" id="review-summary"></div>
+                    <div class="ai-review-box" id="ai-gaps"></div>
+                    <div class="ai-review-box" id="ai-insights"></div>
+                </div>
+
+                <div class="wizard-nav">
+                    <button type="button" class="btn btn-outline" onclick="goToStep(9)" data-testid="button-back-10">Back</button>
+                    <button type="submit" class="btn btn-primary" data-testid="button-submit">Submit Profile</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <footer class="footer"><p>&copy; 2026 GroPro Healthcare Holding Co.</p></footer>
+
+    <script>
+        const TOTAL_STEPS = 10;
+        let currentStep = 1;
+
+        const D = {
+            age_range:'', marital_status:'', dependants:'', uk_resident:'',
+            roles:[], ir35_status:'', private_structure:'', ir35_factors:{},
+            income_streams:[], tax_filing:'', tax_code:'', student_loan:'',
+            pension_types:{}, pension_values:{}, pension_contribs:{},
+            company_types:{}, company_shares:{}, company_others:{}, company_turnovers:{}, company_retaineds:{}, company_divs_paid:{},
+            investment_wrappers:[], debt_breakdown:[], document_types:[], has_companies: true,
+            pensionCount: 1, companyCount: 1
+        };
+
+        (function initIndicators(){
+            const c = document.getElementById('step-indicators');
+            for(let i=1;i<=TOTAL_STEPS;i++){
+                const dot = document.createElement('div');
+                dot.className = 'step-dot' + (i===1?' active':'');
+                dot.id = 'dot-'+i;
+                dot.textContent = i;
+                c.appendChild(dot);
+                if(i < TOTAL_STEPS){
+                    const line = document.createElement('div');
+                    line.className = 'step-line';
+                    line.id = 'line-'+i;
+                    c.appendChild(line);
+                }
+            }
+        })();
+
+        const ROLE_LABELS = {paye:'PAYE Salary',nhs_consultant:'NHS Consultant',gp_partner:'GP Partnership',gp_salaried:'Salaried GP',locum:'Locum',private_practice:'Private Practice',ltd_director:'Ltd Director Salary',partnership:'Partnership',fic_director:'FIC',teaching:'Teaching',research:'Research',medico_legal:'Medico-Legal'};
+
+        document.querySelectorAll('.option-card:not(.multi)').forEach(card=>{
+            card.addEventListener('click',function(){
+                const field = this.dataset.field;
+                const value = this.dataset.value;
+                this.parentElement.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+                this.classList.add('selected');
+                D[field] = value;
+                const el = document.getElementById('field-'+field);
+                if(el) el.value = value;
+            });
+        });
+
+        document.querySelectorAll('.option-card.multi').forEach(card=>{
+            card.addEventListener('click',function(){
+                this.classList.toggle('selected');
+                const field = this.dataset.field;
+                const value = this.dataset.value;
+                if(this.classList.contains('selected')){
+                    D[field].push(value);
+                } else {
+                    D[field] = D[field].filter(v=>v!==value);
+                }
+                const el = document.getElementById('field-'+field);
+                if(el) el.value = JSON.stringify(D[field]);
+
+                if(field==='roles'){
+                    document.getElementById('sq-locum').classList.toggle('visible', D.roles.includes('locum'));
+                    document.getElementById('sq-private').classList.toggle('visible', D.roles.includes('private_practice'));
+                    var showIR35 = D.roles.includes('locum') || D.roles.includes('ltd_director') || D.roles.includes('private_practice');
+                    document.getElementById('sq-ir35-factors').classList.toggle('visible', showIR35);
+                    buildIncomeStreams();
+                }
+            });
+        });
+
+        function toggleDoc(el){
+            el.classList.toggle('selected');
+            const selected = [];
+            el.parentElement.querySelectorAll('.doc-card.selected').forEach(d=>selected.push(d.dataset.value));
+            D.document_types = selected;
+            document.getElementById('field-document_types').value = JSON.stringify(selected);
+        }
+
+        function setIR35Factor(btn){
+            var factor = btn.dataset.ir35;
+            var val = btn.dataset.val === 'true';
+            D.ir35_factors[factor] = val;
+            btn.parentElement.querySelectorAll('.gap-btn').forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('field-ir35_factors').value = JSON.stringify(D.ir35_factors);
+        }
+
+        function updateRange(input, displayId){
+            const val = parseInt(input.value);
+            document.getElementById(displayId).textContent = '\u00A3'+val.toLocaleString('en-GB');
+        }
+
+        function showFiles(input){
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            for(let i=0;i<input.files.length;i++){
+                const li = document.createElement('li');
+                const size = (input.files[i].size/1024).toFixed(1);
+                li.innerHTML='<span>'+input.files[i].name+'</span><span>'+size+' KB</span>';
+                list.appendChild(li);
+            }
+        }
+
+        function buildIncomeStreams(){
+            const c = document.getElementById('income-streams-container');
+            c.innerHTML = '';
+            D.roles.forEach(role=>{
+                const label = ROLE_LABELS[role] || role.replace(/_/g,' ');
+                const div = document.createElement('div');
+                div.className = 'range-group income-stream-item';
+                const id = 'val-stream-'+role;
+                div.innerHTML = '<div class="range-label-row"><span class="range-label">'+label+' Income</span><span class="range-value" id="'+id+'">\u00A3100,000</span></div><input type="range" data-stream="'+role+'" min="0" max="500000" step="5000" value="100000" oninput="updateRange(this,\''+id+'\');updateIncomeStreams()">';
+                c.appendChild(div);
+            });
+            updateIncomeStreams();
+        }
+
+        function updateIncomeStreams(){
+            const streams = [];
+            document.querySelectorAll('[data-stream]').forEach(input=>{
+                const val = parseInt(input.value);
+                if(val > 0) streams.push({source: input.dataset.stream, amount: val});
+            });
+            D.income_streams = streams;
+            document.getElementById('field-income_streams').value = JSON.stringify(streams);
+        }
+
+        function updatePensions(){
+            const pensions = [];
+            for(let i=0;i<D.pensionCount;i++){
+                const type = D.pension_types[i] || '';
+                const valEl = document.querySelector('.pension-value[data-idx="'+i+'"]');
+                const contribEl = document.querySelector('.pension-contrib[data-idx="'+i+'"]');
+                if(valEl){
+                    pensions.push({
+                        type: type,
+                        value: parseInt(valEl.value),
+                        annual_contribution: contribEl ? parseInt(contribEl.value) : 0
+                    });
+                }
+            }
+            document.getElementById('field-pensions_data').value = JSON.stringify(pensions);
+        }
+
+        function addPension(){
+            if(D.pensionCount >= 4) return;
+            const idx = D.pensionCount;
+            D.pensionCount++;
+            const container = document.getElementById('pensions-container');
+            const div = document.createElement('div');
+            div.className = 'dynamic-section';
+            div.dataset.pensionIdx = idx;
+            div.innerHTML = '<h4>Pension '+(idx+1)+'</h4><p class="section-label" style="margin-top:0;">Pension Type</p><div class="option-grid pension-type-grid"><div class="option-card" data-value="nhs_1995" data-field="pension_type_'+idx+'"><div class="option-label">NHS 1995</div></div><div class="option-card" data-value="nhs_2008" data-field="pension_type_'+idx+'"><div class="option-label">NHS 2008</div></div><div class="option-card" data-value="nhs_2015" data-field="pension_type_'+idx+'"><div class="option-label">NHS 2015</div></div><div class="option-card" data-value="sipp" data-field="pension_type_'+idx+'"><div class="option-label">SIPP</div></div><div class="option-card" data-value="personal" data-field="pension_type_'+idx+'"><div class="option-label">Personal</div></div><div class="option-card" data-value="workplace" data-field="pension_type_'+idx+'"><div class="option-label">Workplace</div></div></div><div class="range-group"><div class="range-label-row"><span class="range-label">Current Value</span><span class="range-value" id="val-pension-'+idx+'">\u00A3100,000</span></div><input type="range" class="pension-value" data-idx="'+idx+'" min="0" max="2000000" step="10000" value="100000" oninput="updateRange(this,\'val-pension-'+idx+'\');updatePensions()"></div><div class="range-group"><div class="range-label-row"><span class="range-label">Annual Contribution</span><span class="range-value" id="val-pension-contrib-'+idx+'">\u00A310,000</span></div><input type="range" class="pension-contrib" data-idx="'+idx+'" min="0" max="60000" step="1000" value="10000" oninput="updateRange(this,\'val-pension-contrib-'+idx+'\');updatePensions()"></div>';
+            container.appendChild(div);
+            div.querySelectorAll('.option-card').forEach(card=>{
+                card.addEventListener('click',function(){
+                    this.parentElement.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    D.pension_types[idx] = this.dataset.value;
+                    updatePensions();
+                });
+            });
+        }
+
+        document.querySelectorAll('.pension-type-grid .option-card').forEach(card=>{
+            card.addEventListener('click',function(){
+                this.parentElement.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+                this.classList.add('selected');
+                const idx = parseInt(this.dataset.field.split('_').pop());
+                D.pension_types[idx] = this.dataset.value;
+                updatePensions();
+            });
+        });
+
+        function updateCompanies(){
+            if(!D.has_companies){ document.getElementById('field-companies_data').value='[]'; return; }
+            const companies = [];
+            for(let i=0;i<D.companyCount;i++){
+                const type = D.company_types[i] || '';
+                const shareEl = document.querySelector('.company-share[data-idx="'+i+'"]');
+                const othersEl = document.querySelector('.company-others[data-idx="'+i+'"]');
+                const turnoverEl = document.querySelector('.company-turnover[data-idx="'+i+'"]');
+                const retainedEl = document.querySelector('.company-retained[data-idx="'+i+'"]');
+                const divsEl = document.querySelector('.company-divs[data-idx="'+i+'"]');
+                if(shareEl){
+                    companies.push({
+                        type: type,
+                        shareholding_pct: parseInt(shareEl.value),
+                        other_shareholders: othersEl ? parseInt(othersEl.value) : 0,
+                        turnover: turnoverEl ? parseInt(turnoverEl.value) : 0,
+                        retained_profits: retainedEl ? parseInt(retainedEl.value) : 0,
+                        dividends_paid: divsEl ? parseInt(divsEl.value) : 0
+                    });
+                }
+            }
+            document.getElementById('field-companies_data').value = JSON.stringify(companies);
+        }
+
+        function skipCompanies(){
+            D.has_companies = false;
+            document.getElementById('companies-container').innerHTML = '<p style="font-size:13px;color:var(--mid);padding:20px 0;">No company structures — noted.</p>';
+            document.getElementById('field-companies_data').value = '[]';
+        }
+
+        function addCompany(){
+            if(D.companyCount >= 3) return;
+            D.has_companies = true;
+            const idx = D.companyCount;
+            D.companyCount++;
+            const container = document.getElementById('companies-container');
+            const div = document.createElement('div');
+            div.className = 'dynamic-section';
+            div.dataset.companyIdx = idx;
+            div.innerHTML = '<h4>Company '+(idx+1)+'</h4><p class="section-label" style="margin-top:0;">Company Type</p><div class="option-grid company-type-grid"><div class="option-card" data-value="ltd" data-field="company_type_'+idx+'"><div class="option-label">Ltd</div></div><div class="option-card" data-value="llp" data-field="company_type_'+idx+'"><div class="option-label">LLP</div></div><div class="option-card" data-value="fic" data-field="company_type_'+idx+'"><div class="option-label">FIC</div></div><div class="option-card" data-value="partnership" data-field="company_type_'+idx+'"><div class="option-label">Partnership</div></div></div><div class="range-group"><div class="range-label-row"><span class="range-label">Your Shareholding</span><span class="range-value" id="val-share-'+idx+'">100%</span></div><input type="range" class="company-share" data-idx="'+idx+'" min="0" max="100" step="5" value="100" oninput="document.getElementById(\'val-share-'+idx+'\').textContent=this.value+\'%\';updateCompanies()"></div><div class="range-group"><div class="range-label-row"><span class="range-label">Other Shareholders</span><span class="range-value" id="val-others-'+idx+'">0</span></div><input type="range" class="company-others" data-idx="'+idx+'" min="0" max="10" step="1" value="0" oninput="document.getElementById(\'val-others-'+idx+'\').textContent=this.value;updateCompanies()"></div><div class="range-group"><div class="range-label-row"><span class="range-label">Annual Turnover</span><span class="range-value" id="val-turnover-'+idx+'">\u00A3100,000</span></div><input type="range" class="company-turnover" data-idx="'+idx+'" min="0" max="2000000" step="10000" value="100000" oninput="updateRange(this,\'val-turnover-'+idx+'\');updateCompanies()"></div><div class="range-group"><div class="range-label-row"><span class="range-label">Retained Profits</span><span class="range-value" id="val-retained-'+idx+'">\u00A350,000</span></div><input type="range" class="company-retained" data-idx="'+idx+'" min="0" max="1000000" step="5000" value="50000" oninput="updateRange(this,\'val-retained-'+idx+'\');updateCompanies()"></div><div class="range-group"><div class="range-label-row"><span class="range-label">Dividends Paid (Annual)</span><span class="range-value" id="val-divs-'+idx+'">\u00A330,000</span></div><input type="range" class="company-divs" data-idx="'+idx+'" min="0" max="500000" step="5000" value="30000" oninput="updateRange(this,\'val-divs-'+idx+'\');updateCompanies()"></div>';
+            container.appendChild(div);
+            div.querySelectorAll('.company-type-grid .option-card').forEach(card=>{
+                card.addEventListener('click',function(){
+                    this.parentElement.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    D.company_types[idx] = this.dataset.value;
+                    updateCompanies();
+                });
+            });
+        }
+
+        document.querySelectorAll('.company-type-grid .option-card').forEach(card=>{
+            card.addEventListener('click',function(){
+                this.parentElement.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+                this.classList.add('selected');
+                const idx = parseInt(this.dataset.field.split('_').pop());
+                D.company_types[idx] = this.dataset.value;
+                updateCompanies();
+            });
+        });
+
+        function updateInvestments(){
+            const wrappers = [];
+            document.querySelectorAll('[data-wrapper]').forEach(input=>{
+                const val = parseInt(input.value);
+                if(val > 0) wrappers.push({type: input.dataset.wrapper, value: val});
+            });
+            D.investment_wrappers = wrappers;
+            document.getElementById('field-investment_wrappers').value = JSON.stringify(wrappers);
+        }
+
+        function updateDebts(){
+            const debts = [];
+            document.querySelectorAll('[data-debt]').forEach(input=>{
+                const val = parseInt(input.value);
+                if(val > 0) debts.push({type: input.dataset.debt, balance: val});
+            });
+            D.debt_breakdown = debts;
+            document.getElementById('field-debt_breakdown').value = JSON.stringify(debts);
+        }
+
+        function validateStep(from, to){
+            if(to <= from) return true;
+            if(from===1){
+                if(!D.age_range){alert('Please select your age range');return false;}
+                if(!D.marital_status){alert('Please select your marital status');return false;}
+                if(!D.uk_resident){alert('Please confirm UK tax residency');return false;}
+            }
+            if(from===2 && D.roles.length===0){alert('Please select at least one professional role');return false;}
+            if(from===4){
+                if(!D.tax_filing){alert('Please select your tax filing method');return false;}
+                if(!D.student_loan){alert('Please select your student loan status');return false;}
+            }
+            return true;
+        }
+
+        function goToStep(step){
+            if(!validateStep(currentStep, step)) return;
+            if(step===3) buildIncomeStreams();
+            currentStep = step;
+            document.querySelectorAll('.wizard-panel').forEach(p=>p.classList.remove('active'));
+            document.getElementById('step-'+step).classList.add('active');
+            for(let i=1;i<=TOTAL_STEPS;i++){
+                const dot = document.getElementById('dot-'+i);
+                const line = document.getElementById('line-'+(i-1));
+                dot.classList.remove('active','completed');
+                if(line) line.classList.remove('completed');
+                if(i<step){dot.classList.add('completed');if(line)line.classList.add('completed');}
+                else if(i===step) dot.classList.add('active');
+            }
+            if(step===TOTAL_STEPS) runAIReview();
+            window.scrollTo(0,0);
+        }
+
+        function runAIReview(){
+            document.getElementById('ai-loading').style.display='block';
+            document.getElementById('ai-results').style.display='none';
+            updateIncomeStreams(); updatePensions(); updateCompanies(); updateInvestments(); updateDebts();
+            const form = document.getElementById('onboarding-form');
+            const fd = new FormData(form);
+            const data = {};
+            for(const [key,value] of fd.entries()){if(key!=='files') data[key]=value;}
+            fetch('/onboarding/ai-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+            .then(r=>r.json())
+            .then(result=>{
+                document.getElementById('ai-loading').style.display='none';
+                document.getElementById('ai-results').style.display='block';
+                const totalIncome = D.income_streams.reduce((s,i)=>s+i.amount,0);
+                let html='<h4>Profile Summary</h4>';
+                html+='<div class="review-item"><span class="review-key">Age Range</span><span class="review-val">'+(D.age_range||'—')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Marital Status</span><span class="review-val">'+(D.marital_status||'—').replace(/_/g,' ')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Dependants</span><span class="review-val">'+(D.dependants||'0')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Roles</span><span class="review-val">'+(D.roles.length?D.roles.map(r=>(ROLE_LABELS[r]||r)).join(', '):'None')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Total Income</span><span class="review-val">\u00A3'+totalIncome.toLocaleString('en-GB')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Tax Filing</span><span class="review-val">'+(D.tax_filing||'—').replace(/_/g,' ')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Student Loan</span><span class="review-val">'+(D.student_loan||'—').replace(/_/g,' ')+'</span></div>';
+                html+='<div class="review-item"><span class="review-key">Documents</span><span class="review-val">'+(D.document_types.length?D.document_types.length+' selected':'None')+'</span></div>';
+                document.getElementById('review-summary').innerHTML=html;
+
+                let gapHtml='<h4>Missing Information</h4>';
+                if(result.gaps && result.gaps.length>0){
+                    result.gaps.forEach(g=>{
+                        gapHtml+='<div class="gap-question"><span>'+g.question+'</span><div class="gap-btns"><button type="button" class="gap-btn" onclick="answerGap(this,\'yes\')">Yes</button><button type="button" class="gap-btn" onclick="answerGap(this,\'no\')">No</button></div></div>';
+                    });
+                } else {
+                    gapHtml+='<div class="ai-item"><div class="ai-dot"></div><span>All key information provided</span></div>';
+                }
+                document.getElementById('ai-gaps').innerHTML=gapHtml;
+
+                let insHtml='<h4>AI Insights</h4>';
+                if(result.insights && result.insights.length>0){
+                    result.insights.forEach(ins=>{insHtml+='<div class="ai-item"><div class="ai-dot"></div><span>'+ins+'</span></div>';});
+                }
+                if(result.mri_score!==undefined){
+                    insHtml+='<div class="ai-item"><div class="ai-dot"></div><span>Preliminary MRI Score: <strong>'+result.mri_score+' / 100</strong></span></div>';
+                }
+                document.getElementById('ai-insights').innerHTML=insHtml;
+            })
+            .catch(()=>{document.getElementById('ai-loading').textContent='Could not complete AI review. You can still submit your profile.';});
+        }
+
+        function answerGap(btn, answer){
+            btn.parentElement.querySelectorAll('.gap-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        updatePensions(); updateCompanies(); updateInvestments(); updateDebts();
+    </script>
+</body>
+</html>
