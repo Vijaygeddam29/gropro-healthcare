@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investments - GroPro</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:8px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/fic/">FIC Management</a>
+            <a href="/investments/" class="active">Investments</a>
+            <a href="/marketplace">Advisors</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Investments</h1>
+            <p>Track and manage your investment portfolio</p>
+        </div>
+
+        <div class="cards-row">
+            <div class="summary-card">
+                <div class="card-label">Total Invested</div>
+                <div class="card-value">&pound;{{ "{:,.0f}".format(total) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Pension Future Value</div>
+                <div class="card-value">&pound;{{ "{:,.0f}".format(pension.future_value) }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">LTA Warning</div>
+                <div class="card-value {% if pension.taper_warning %}text-warning{% else %}text-safe{% endif %}">
+                    {{ "Yes - Review" if pension.taper_warning else "No" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Investment Portfolio</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Risk</th>
+                        <th>Amount</th>
+                        <th>Projected Return</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in investments %}
+                    <tr>
+                        <td>{{ inv.name }}</td>
+                        <td><span class="badge badge-type">{{ inv.type }}</span></td>
+                        <td><span class="badge badge-{{ inv.risk }}">{{ inv.risk }}</span></td>
+                        <td>&pound;{{ "{:,.0f}".format(inv.amount) }}</td>
+                        <td class="text-return">{{ inv.projected_return }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 GroPro Healthcare Holding Co.</p>
+    </footer>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
