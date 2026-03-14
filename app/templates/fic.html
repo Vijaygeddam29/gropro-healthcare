@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIC Management - GroPro</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:8px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/fic/" class="active">FIC Management</a>
+            <a href="/investments/">Investments</a>
+            <a href="/marketplace">Advisors</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>FIC Management</h1>
+            <p>Manage your Family Investment Companies</p>
+        </div>
+
+        <div class="fic-grid">
+            {% for item in fics %}
+            <div class="panel fic-card">
+                <div class="fic-header">
+                    <h3>{{ item.fic.fic_name }}</h3>
+                    <span class="badge badge-{{ item.fic.dividend_strategy }}">{{ item.fic.dividend_strategy }}</span>
+                </div>
+                <div class="fic-stats">
+                    <div class="fic-stat">
+                        <span class="fic-stat-label">Capital</span>
+                        <span class="fic-stat-value">&pound;{{ "{:,.0f}".format(item.fic.capital) }}</span>
+                    </div>
+                    <div class="fic-stat">
+                        <span class="fic-stat-label">Corp Tax</span>
+                        <span class="fic-stat-value">{{ (item.fic.corporation_tax * 100)|int }}%</span>
+                    </div>
+                </div>
+                <div class="scenario-list">
+                    <h4>Projected Returns (A/B/C)</h4>
+                    {% for key, scenario in item.scenarios.items() %}
+                    <div class="scenario-row">
+                        <span class="scenario-label">{{ key }} - {{ scenario.risk }}</span>
+                        <span class="scenario-value">{{ (scenario.projected_return * 100)|round(1) }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 GroPro Healthcare Holding Co.</p>
+    </footer>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
