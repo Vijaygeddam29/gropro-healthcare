@@ -1,0 +1,375 @@
+this is the correct architectural direction. We will design the GroPro MVP so it is:
+
+Micro-modular
+
+Agent-driven
+
+Scalable
+
+Scandinavian simple UI
+
+Healthcare wealth network ready
+
+I’ll give you a Replit-ready architecture with clear modules, AI agents, and starter code structure so you can begin building immediately.
+
+1. Core Architecture of GroPro
+Think of GroPro as four layers.
+
+GroPro Platform
+
+1. Data Layer
+2. Intelligence Layer (AI Agents)
+3. Financial Engines
+4. Network & Marketplace Layer
+Layer 1 — Data Layer
+Collects financial data from users.
+
+Sources include:
+
+tax returns
+
+company accounts
+
+pension statements
+
+bank summaries
+
+investment portfolios
+
+External sources later:
+
+HM Revenue and Customs rules
+
+Companies House company data
+
+Layer 2 — Intelligence Layer
+This is where your specialist AI agents live.
+
+Instead of one AI, GroPro uses agent clusters.
+
+Example:
+
+Tax Intelligence System
+│
+├ Data Aggregator Agent
+├ Compliance Agent
+├ Opportunity Agent
+└ Scenario Modeller
+Each cluster solves a financial problem.
+
+Layer 3 — Financial Engines
+These produce the Financial MRI score.
+
+Engines include:
+
+1️⃣ Financial MRI Engine
+2️⃣ Tax Optimisation Engine
+3️⃣ Pension Strategy Engine
+4️⃣ IR35 Risk Engine
+5️⃣ FIC Structuring Engine
+6️⃣ Wealth Projection Engine
+7️⃣ Capital Allocation Engine
+
+These correspond to the 7 killer features.
+
+Layer 4 — Network & Marketplace
+This creates the ecosystem effect.
+
+Participants:
+
+Doctors
+
+Accountants
+
+Investment advisors
+
+GroPro trustees
+
+Doctors control access.
+
+Example:
+
+Doctor invites accountant
+Doctor requests investment advice
+Doctor joins capital pool
+2. Replit Project Structure
+Create this directory structure.
+
+gropro-platform
+
+backend
+│
+├ main.py
+├ config.py
+│
+├ data_layer
+│   ├ data_ingestion.py
+│   ├ financial_parser.py
+│   └ hmrc_rules_engine.py
+│
+├ agents
+│   ├ tax_agents
+│   │   ├ tax_data_agent.py
+│   │   ├ tax_analysis_agent.py
+│   │   ├ tax_solution_agent.py
+│   │   └ tax_scenario_agent.py
+│   │
+│   ├ pension_agents
+│   │   ├ pension_data_agent.py
+│   │   ├ pension_analysis_agent.py
+│   │   └ pension_projection_agent.py
+│   │
+│   ├ structure_agents
+│   │   ├ company_structure_agent.py
+│   │   ├ fic_builder_agent.py
+│   │   └ dividend_strategy_agent.py
+│   │
+│   ├ risk_agents
+│   │   ├ ir35_detection_agent.py
+│   │   └ compliance_guardrail_agent.py
+│
+├ engines
+│   ├ financial_mri_engine.py
+│   ├ wealth_projection_engine.py
+│   ├ capital_allocator.py
+│
+├ marketplace
+│   ├ advisor_registry.py
+│   ├ advisor_matching.py
+│   └ collaboration_portal.py
+│
+frontend
+│
+├ dashboard
+├ mri_score_view
+├ wealth_projection
+├ fic_builder
+├ marketplace
+3. Core AI Agent Clusters
+A. Tax Intelligence Cluster
+Purpose: detect tax inefficiencies.
+
+Agents:
+
+Tax Data Agent
+Tax Compliance Agent
+Tax Opportunity Agent
+Tax Scenario Agent
+Example code:
+
+class TaxOpportunityAgent:
+
+    def analyse(self, income, dividends):
+
+        opportunities = []
+
+        if dividends > 50000:
+            opportunities.append(
+                "Consider dividend splitting with spouse"
+            )
+
+        if income > 200000:
+            opportunities.append(
+                "Pension taper risk detected"
+            )
+
+        return opportunities
+4. Financial MRI Engine (Core Product)
+This combines all insights into one score.
+
+Example logic:
+
+class FinancialMRIEngine:
+
+    def calculate_score(self, tax_score, pension_score, structure_score):
+
+        score = (tax_score + pension_score + structure_score) / 3
+
+        return round(score,2)
+Example output:
+
+Financial MRI Score
+64 / 100
+
+Detected optimisation:
+£41,300 annually
+5. Pension Strategy Agent
+Handles complex issues like:
+
+NHS pension
+
+tapered allowance
+
+annual allowance
+
+Example code:
+
+class PensionAnalysisAgent:
+
+    def analyse(self, income, pension_contribution):
+
+        allowance = 60000
+
+        if income > 260000:
+            allowance = 10000
+
+        excess = pension_contribution - allowance
+
+        return {
+            "allowance": allowance,
+            "excess": excess
+        }
+Rules derived from:
+
+NHS Pension Scheme
+
+6. FIC Builder Agent
+Helps create Family Investment Companies.
+
+Example:
+
+class FICBuilderAgent:
+
+    def build_structure(self, capital):
+
+        return {
+            "company_type": "Family Investment Company",
+            "capital": capital,
+            "tax_rate": "19% corporation tax",
+            "dividend_strategy": "retain profits for reinvestment"
+        }
+7. Capital Aggregation Engine
+Matches doctor capital to opportunities.
+
+Example:
+
+class CapitalAllocator:
+
+    def allocate(self, capital):
+
+        return {
+
+            "ETF_portfolio": capital * 0.4,
+
+            "healthcare_property": capital * 0.35,
+
+            "venture_investments": capital * 0.25
+        }
+8. Advisor Marketplace
+Doctors can invite advisors.
+
+Example structure:
+
+Advisor Registry
+
+Accountants
+Tax Advisors
+Investment Advisors
+Legal Advisors
+Example code:
+
+class AdvisorRegistry:
+
+    advisors = []
+
+    def register(self, name, speciality):
+
+        self.advisors.append({
+            "name": name,
+            "speciality": speciality
+        })
+9. Scandinavian UI Design
+Principles:
+
+Minimal UI.
+
+Example dashboard:
+
+Financial MRI
+
+Score
+72
+
+Tax efficiency
+Good
+
+Pension risk
+Moderate
+
+Structure
+Needs optimisation
+Only essential information.
+
+10. Guardrails
+Every AI agent must follow rules:
+
+AI cannot give financial advice
+AI must suggest scenarios
+User must confirm with advisor
+Example:
+
+class ComplianceGuardrail:
+
+    def check(self, recommendation):
+
+        if "invest now" in recommendation:
+            return "Review with advisor"
+
+        return recommendation
+11. How the Network Ownership Works
+Structure:
+
+GroPro Holdings Ltd
+│
+Owns
+• software
+• AI models
+• brand
+Doctors participate via:
+
+personal companies
+
+Family Investment Companies
+
+Early adopters become county trustees.
+
+They help decide investment opportunities.
+
+12. The 7 Killer Features
+Your MVP launches with:
+
+1️⃣ Financial MRI score
+2️⃣ Tax leakage detection
+3️⃣ Pension modelling
+4️⃣ IR35 risk scanner
+5️⃣ FIC builder
+6️⃣ Wealth projection
+7️⃣ Doctor investment marketplace
+
+13. MVP Build Timeline
+Week 1
+Financial MRI engine
+
+Week 2
+Tax intelligence cluster
+
+Week 3
+Pension modelling
+
+Week 4
+FIC builder
+
+Week 5
+Marketplace
+
+14. Final Important Advice
+Do not attempt full automation first.
+
+The real value comes from:
+
+Doctor
+→ AI insights
+→ Advisor validation
+This builds trust.
+
+If you want, the next step is extremely pow
