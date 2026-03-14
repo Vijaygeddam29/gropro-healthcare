@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GroPro - Healthcare Wealth Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">+</span>
+            <span class="brand-text">GroPro</span>
+        </div>
+        <div class="nav-links">
+            {% if user_name %}
+            <a href="/dashboard">Dashboard</a>
+            <a href="/fic/">FIC Management</a>
+            <a href="/investments/">Investments</a>
+            <a href="/marketplace">Advisors</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+            {% else %}
+            <a href="/auth/login" class="btn btn-outline">Login</a>
+            <a href="/auth/register" class="btn btn-primary">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-badge">Healthcare Wealth Management</span>
+            {% if user_name %}
+            <h1>Welcome, <span class="text-primary">{{ first_name }}</span></h1>
+            <p>Your wealth platform is ready.</p>
+            <div class="hero-actions">
+                <a href="/dashboard" class="btn btn-primary">Open Dashboard &rarr;</a>
+                <a href="/investments/" class="btn btn-outline">View Investments</a>
+            </div>
+            {% else %}
+            <h1><span class="text-primary">Your</span> Wealth Platform</h1>
+            <p>AI-powered wealth management built for doctors, consultants, and healthcare professionals.</p>
+            <div class="hero-actions">
+                <a href="/auth/register" class="btn btn-primary">Get Started &rarr;</a>
+                <a href="/auth/login" class="btn btn-outline">Sign In</a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="features-section">
+        <h2>Intelligent Wealth Tools</h2>
+        <p class="section-subtitle">Every tool designed specifically for UK healthcare professionals managing complex financial structures.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#9764;</div>
+                <h3>Financial MRI</h3>
+                <p>Get a comprehensive health score for your finances. Our AI analyzes debt, savings, pension, and investment efficiency.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9962;</div>
+                <h3>FIC Optimization</h3>
+                <p>Maximize your Family Investment Company structure with intelligent dividend strategies and tax-efficient capital allocation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9650;</div>
+                <h3>Scenario Modeling</h3>
+                <p>Compare conservative, balanced, and aggressive strategies with projected returns and tax impact analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9734;</div>
+                <h3>Advisor Marketplace</h3>
+                <p>Connect with verified wealth advisors who specialize in healthcare professional finances.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-card">
+            <h2>Built for Healthcare Professionals</h2>
+            <p>Whether you're a GP partner, locum, or hospital consultant, GroPro understands the unique financial landscape of medical professionals in the UK and Ireland.</p>
+            <div class="cta-actions">
+                {% if user_name %}
+                <a href="/dashboard" class="btn btn-primary">Open Dashboard</a>
+                {% else %}
+                <a href="/auth/register" class="btn btn-primary">Create Account</a>
+                <a href="/auth/login" class="btn btn-outline">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2026 GroPro Healthcare Holding Co. All rights reserved.</p>
+    </footer>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
