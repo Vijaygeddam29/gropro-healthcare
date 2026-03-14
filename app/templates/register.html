@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - GroPro</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>Create Account</h2>
+            <p>Join GroPro Healthcare Wealth Platform</p>
+            {% if error %}
+            <p style="color:var(--black);font-size:13px;margin-bottom:16px;padding:10px;border:1px solid var(--black);">{{ error }}</p>
+            {% endif %}
+            <form class="auth-form" action="/auth/register" method="post">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" placeholder="Sarah" required data-testid="input-first-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" placeholder="Mitchell" required data-testid="input-last-name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="doctor@nhs.net" required data-testid="input-email">
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" data-testid="select-role">
+                        <option value="GP">GP</option>
+                        <option value="Consultant">Consultant</option>
+                        <option value="Locum">Locum</option>
+                        <option value="Dentist">Dentist</option>
+                        <option value="Pharmacist">Pharmacist</option>
+                        <option value="Other">Other Healthcare</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Create a password" required data-testid="input-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" data-testid="button-register">Create Account</button>
+            </form>
+            <p class="auth-link">Already have an account? <a href="/auth/login" data-testid="link-login">Sign In</a></p>
+        </div>
+    </div>
+</body>
+</html>
