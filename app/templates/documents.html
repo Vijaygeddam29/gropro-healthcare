@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Documents - GroPro</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .upload-area{border:2px dashed var(--pale);padding:48px;text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:24px;background:var(--white);}
+        .upload-area:hover,.upload-area.dragover{border-color:var(--black);}
+        .upload-area h3{font-size:16px;font-weight:400;margin-bottom:8px;}
+        .upload-area p{font-size:12px;color:var(--light);}
+        .status-msg{padding:16px;margin-bottom:16px;font-size:13px;font-weight:300;line-height:1.6;border:1px solid var(--pale);background:var(--bg);}
+        .extraction-card{border:1px solid var(--pale);padding:24px;margin-bottom:16px;background:var(--white);}
+        .extraction-card h3{font-size:16px;font-weight:400;margin-bottom:4px;}
+        .extraction-meta{font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:16px;}
+        .extracted-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--pale);font-size:13px;}
+        .extracted-row:last-child{border-bottom:none;}
+        .extracted-label{color:var(--mid);font-weight:300;}
+        .extracted-value{font-weight:500;}
+        .action-bar{display:flex;gap:12px;margin-top:20px;}
+        .history-card{border:1px solid var(--pale);padding:16px;margin-bottom:8px;background:var(--white);display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+        .history-name{font-weight:500;}
+        .history-type{color:var(--light);font-weight:300;text-transform:uppercase;letter-spacing:0.04em;font-size:10px;}
+        .history-status{font-size:10px;text-transform:uppercase;letter-spacing:0.04em;padding:2px 8px;border:1px solid var(--pale);}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/documents" class="active">Upload</a>
+            <a href="/fic/">FIC</a>
+            <a href="/investments/">Investments</a>
+            <a href="/marketplace">Advisors</a>
+            <a href="/onboarding">Edit Profile</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Upload Documents</h1>
+            <p>Upload bank statements, tax returns, payslips, pension statements — data is extracted automatically for your approval</p>
+        </div>
+
+        <div class="upload-area" id="upload-area" data-testid="upload-area">
+            <h3>Drop a file here or click to browse</h3>
+            <p>Supported: PDF, images, CSV, Excel, Word (max 10MB)</p>
+            <input type="file" id="file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls,.doc,.docx,.txt" data-testid="input-file">
+        </div>
+
+        <div id="status" style="display:none;" data-testid="status-message"></div>
+
+        <div id="extraction-result" style="display:none;" data-testid="extraction-result">
+            <div class="extraction-card">
+                <h3 id="ext-doc-type" data-testid="text-doc-type"></h3>
+                <div class="extraction-meta"><span id="ext-confidence"></span> &mdash; <span id="ext-filename"></span></div>
+                <div id="ext-fields"></div>
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="approveExtraction()" data-testid="button-approve">Approve &amp; Update Profile</button>
+                    <button class="btn btn-outline" onclick="rejectExtraction()" data-testid="button-reject">Reject</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="upload-history" data-testid="upload-history"></div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 GroPro Healthcare Holding Co.</p>
+    </footer>
+
+    <script>
+    var currentExtraction = null;
+
+    var uploadArea = document.getElementById('upload-area');
+    var fileInput = document.getElementById('file-input');
+
+    uploadArea.addEventListener('click', function() { fileInput.click(); });
+    uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', function() { uploadArea.classList.remove('dragover'); });
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+    });
+
+    function handleFile(file) {
+        var status = document.getElementById('status');
+        status.style.display = 'block';
+        status.className = 'status-msg';
+        status.textContent = 'Uploading and analysing ' + file.name + '...';
+        document.getElementById('extraction-result').style.display = 'none';
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/documents/upload', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) {
+                    status.textContent = 'Error: ' + data.error;
+                    return;
+                }
+                currentExtraction = data;
+                showExtraction(data);
+                status.style.display = 'none';
+            })
+            .catch(function(err) {
+                status.textContent = 'Upload failed: ' + err.message;
+            });
+    }
+
+    function formatMn(v) {
+        if (typeof v !== 'number') return v;
+        if (Math.abs(v) >= 1000000) return '\u00a3' + (v / 1000000).toFixed(2) + 'Mn';
+        return '\u00a3' + v.toLocaleString('en-GB', {maximumFractionDigits: 0});
+    }
+
+    function showExtraction(data) {
+        var result = document.getElementById('extraction-result');
+        result.style.display = 'block';
+
+        document.getElementById('ext-doc-type').textContent = data.document_type.replace(/_/g, ' ').toUpperCase();
+        document.getElementById('ext-confidence').textContent = 'Confidence: ' + data.confidence.toUpperCase();
+        document.getElementById('ext-filename').textContent = data.original_name;
+
+        var fields = document.getElementById('ext-fields');
+        fields.innerHTML = '';
+
+        var extracted = data.extracted || {};
+        for (var key in extracted) {
+            if (!extracted.hasOwnProperty(key)) continue;
+            var val = extracted[key];
+            var row = document.createElement('div');
+            row.className = 'extracted-row';
+            var label = document.createElement('span');
+            label.className = 'extracted-label';
+            label.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+            var value = document.createElement('span');
+            value.className = 'extracted-value';
+            value.textContent = typeof val === 'number' ? formatMn(val) : val;
+            row.appendChild(label);
+            row.appendChild(value);
+            fields.appendChild(row);
+        }
+
+        if (Object.keys(extracted).length === 0) {
+            fields.innerHTML = '<div style="font-size:13px;color:var(--light);padding:12px 0;">No data could be extracted from this document. Try uploading a text-based file (CSV or TXT) for best results.</div>';
+        }
+
+        var proposed = data.proposed_updates || {};
+        if (Object.keys(proposed).length > 0) {
+            var heading = document.createElement('div');
+            heading.style.cssText = 'font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-top:16px;margin-bottom:8px;';
+            heading.textContent = 'Proposed Profile Updates';
+            fields.appendChild(heading);
+
+            for (var pkey in proposed) {
+                if (!proposed.hasOwnProperty(pkey)) continue;
+                var pval = proposed[pkey];
+                var prow = document.createElement('div');
+                prow.className = 'extracted-row';
+                var plabel = document.createElement('span');
+                plabel.className = 'extracted-label';
+                plabel.textContent = pkey.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+                var pvalue = document.createElement('span');
+                pvalue.className = 'extracted-value';
+                if (typeof pval === 'object') {
+                    var parts = [];
+                    for (var k in pval) { parts.push(k.replace(/_/g,' ') + ': ' + (typeof pval[k] === 'number' ? formatMn(pval[k]) : pval[k])); }
+                    pvalue.textContent = parts.join(', ');
+                } else {
+                    pvalue.textContent = typeof pval === 'number' ? formatMn(pval) : pval;
+                }
+                prow.appendChild(plabel);
+                prow.appendChild(pvalue);
+                fields.appendChild(prow);
+            }
+        }
+    }
+
+    function approveExtraction() {
+        if (!currentExtraction) return;
+        var status = document.getElementById('status');
+        status.style.display = 'block';
+        status.className = 'status-msg';
+        status.textContent = 'Updating your profile...';
+
+        fetch('/documents/approve', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                updates: currentExtraction.proposed_updates,
+                filename: currentExtraction.filename,
+                original_name: currentExtraction.original_name,
+                document_type: currentExtraction.document_type,
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                status.textContent = 'Profile updated successfully. Redirecting to dashboard...';
+                setTimeout(function() { window.location.href = '/dashboard'; }, 1500);
+            } else {
+                status.textContent = 'Error: ' + (data.error || 'Unknown error');
+            }
+        })
+        .catch(function(err) {
+            status.textContent = 'Failed: ' + err.message;
+        });
+    }
+
+    function rejectExtraction() {
+        currentExtraction = null;
+        document.getElementById('extraction-result').style.display = 'none';
+        var status = document.getElementById('status');
+        status.style.display = 'block';
+        status.className = 'status-msg';
+        status.textContent = 'Extraction rejected. Upload another document or return to the dashboard.';
+    }
+    </script>
+</body>
+</html>
