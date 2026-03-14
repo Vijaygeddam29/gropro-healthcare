@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advisor Marketplace - GroPro</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/fic/">FIC Management</a>
+            <a href="/investments/">Investments</a>
+            <a href="/marketplace" class="active">Advisors</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Advisor Marketplace</h1>
+            <p>Connect with verified wealth professionals</p>
+        </div>
+
+        <div class="fic-grid">
+            {% for advisor in advisors %}
+            <div class="panel fic-card">
+                <div class="fic-header">
+                    <h3 style="text-transform:none;letter-spacing:0;">{{ advisor.name }}</h3>
+                    {% if advisor.verified %}
+                    <span class="badge badge-aggressive">Verified</span>
+                    {% else %}
+                    <span class="badge badge-balanced">Pending</span>
+                    {% endif %}
+                </div>
+                <div class="fic-stats">
+                    <div class="fic-stat">
+                        <span class="fic-stat-label">Specialty</span>
+                        <span class="fic-stat-value">{{ advisor.specialty }}</span>
+                    </div>
+                    <div class="fic-stat">
+                        <span class="fic-stat-label">Status</span>
+                        <span class="fic-stat-value">{% if advisor.verified %}Active{% else %}Review{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 GroPro Healthcare Holding Co.</p>
+    </footer>
+</body>
+</html>
