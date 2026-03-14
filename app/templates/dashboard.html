@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - GroPro</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .dash-section{margin-bottom:12px;}
+
+        .section-heading{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:20px 24px;cursor:pointer;user-select:none;
+            border:1px solid var(--pale);background:var(--white);
+        }
+        .section-heading:hover{background:var(--bg);}
+        .section-heading h2{
+            font-size:22px;font-weight:400;letter-spacing:0.01em;margin:0;color:var(--black);
+        }
+        .section-toggle{font-size:18px;color:var(--light);transition:transform 0.2s;}
+        .section-toggle.open{transform:rotate(180deg);}
+        .section-body{display:none;border:1px solid var(--pale);border-top:none;padding:24px;background:var(--white);}
+        .section-body.open{display:block;}
+
+        .nw-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--pale);border:1px solid var(--pale);}
+        .nw-cell{background:var(--white);padding:20px 24px;}
+        .nw-cell .card-label{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;}
+        .nw-cell .card-value{font-size:22px;font-weight:300;}
+        .nw-hero{background:var(--black);color:var(--white);padding:28px 24px;grid-column:1/-1;}
+        .nw-hero .card-label{color:var(--light);}
+        .nw-hero .card-value{font-size:32px;font-weight:300;color:var(--white);}
+
+        .forecast-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--pale);border:1px solid var(--pale);margin-bottom:16px;}
+        .forecast-cell{background:var(--white);padding:16px 20px;}
+        .forecast-cell .card-label{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;}
+        .forecast-cell .card-value{font-size:20px;font-weight:300;}
+        .forecast-hero{grid-column:1/-1;background:var(--black);color:var(--white);padding:24px;}
+        .forecast-hero .card-label{color:var(--light);}
+        .forecast-hero .card-value{font-size:28px;font-weight:300;color:var(--white);}
+        .forecast-detail{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;margin-top:8px;padding:16px;border:1px solid var(--pale);background:var(--bg);}
+        .forecast-monthly{margin-top:16px;}
+        .forecast-monthly h4{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;}
+
+        .due-dates{margin-top:16px;}
+        .due-date-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--pale);font-size:12px;}
+        .due-date-item:last-child{border-bottom:none;}
+        .dd-date{font-weight:500;white-space:nowrap;margin-right:16px;}
+        .dd-desc{color:var(--mid);font-weight:300;}
+
+        .ir35-card{border:1px solid var(--pale);padding:20px;margin-bottom:8px;background:var(--white);}
+        .ir35-risk{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border:1px solid var(--pale);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+        .ir35-risk.high{border-color:var(--black);color:var(--black);}
+        .ir35-risk.medium{color:var(--mid);}
+        .ir35-risk.low{color:var(--light);}
+        .ir35-factor{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--pale);font-size:12px;}
+        .ir35-factor:last-child{border-bottom:none;}
+        .ir35-factor-q{color:var(--mid);font-weight:300;flex:1;}
+        .ir35-factor-a{font-weight:500;width:80px;text-align:right;}
+        .ir35-legislation{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;margin-top:12px;padding:16px;border:1px solid var(--pale);background:var(--bg);}
+
+        .mri-hero{display:flex;align-items:center;gap:32px;margin-bottom:20px;}
+        .mri-ring{position:relative;width:120px;height:120px;flex-shrink:0;}
+        .mri-ring svg{width:100%;height:100%;}
+        .mri-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        .mri-ring-score{font-size:28px;font-weight:300;color:var(--black);}
+        .mri-ring-label{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;}
+        .mri-summary{flex:1;}
+        .mri-summary p{font-size:14px;color:var(--mid);font-weight:300;line-height:1.7;}
+
+        .sub-score-panel{border:1px solid var(--pale);margin-bottom:8px;background:var(--white);}
+        .sub-score-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;user-select:none;}
+        .sub-score-header:hover{background:var(--bg);}
+        .ss-left{display:flex;align-items:center;gap:14px;}
+        .ss-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mid);}
+        .ss-title{font-size:13px;font-weight:500;letter-spacing:0.02em;}
+        .ss-score{font-size:13px;font-weight:300;color:var(--mid);}
+        .ss-bar-wrap{width:80px;height:4px;background:var(--pale);margin-left:12px;}
+        .ss-bar{height:100%;background:var(--black);}
+        .ss-toggle{font-size:16px;color:var(--light);transition:transform 0.2s;}
+        .sub-score-body{display:none;padding:0 20px 20px 62px;font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+        .sub-score-body.open{display:block;}
+        .ss-toggle.open{transform:rotate(180deg);}
+        .ss-detail{margin-bottom:10px;}
+        .ss-action{border-top:1px solid var(--pale);padding-top:10px;margin-top:10px;font-weight:400;color:var(--black);}
+
+        .leakage-card{border:1px solid var(--pale);padding:20px;margin-bottom:8px;background:var(--white);font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+
+        .scenario-panel{border:1px solid var(--pale);margin-bottom:8px;background:var(--white);}
+        .scenario-head{padding:20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+        .scenario-head:hover{background:var(--bg);}
+        .sc-name{font-size:14px;font-weight:500;letter-spacing:0.02em;}
+        .sc-saving{font-size:13px;font-weight:300;color:var(--mid);}
+        .scenario-body{display:none;padding:0 20px 20px;font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+        .scenario-body.open{display:block;}
+        .sc-simple{margin-bottom:12px;}
+        .sc-projections{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--pale);border:1px solid var(--pale);margin-bottom:12px;}
+        .sc-proj-cell{background:var(--white);padding:12px 16px;text-align:center;}
+        .sc-proj-cell .card-label{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;}
+        .sc-proj-cell .card-value{font-size:18px;font-weight:300;}
+        .sc-steps{list-style:none;padding:0;margin:0;}
+        .sc-steps li{padding:6px 0;border-bottom:1px solid var(--pale);font-size:12px;}
+        .sc-steps li:last-child{border-bottom:none;}
+
+        .rec-card{border:1px solid var(--pale);padding:20px;margin-bottom:8px;background:var(--white);}
+        .rec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+        .rec-title{font-size:13px;font-weight:500;}
+        .rec-priority{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border:1px solid var(--pale);}
+        .rec-priority.urgent{border-color:var(--black);color:var(--black);}
+        .rec-priority.high{color:var(--mid);}
+        .rec-priority.medium{color:var(--light);}
+        .rec-priority.low{color:var(--light);}
+        .rec-saving{font-size:12px;font-weight:500;margin-bottom:6px;color:var(--black);}
+        .rec-simple{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+
+        .priority-card{border:1px solid var(--pale);padding:20px;margin-bottom:8px;background:var(--white);}
+        .pri-order{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--black);font-size:12px;font-weight:500;margin-right:10px;}
+        .pri-title{font-size:13px;font-weight:500;}
+        .pri-amount{font-size:12px;font-weight:300;color:var(--mid);margin:6px 0;}
+        .pri-simple{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+
+        .wrapper-order{display:grid;gap:1px;background:var(--pale);border:1px solid var(--pale);margin-bottom:16px;}
+        .wo-row{display:grid;grid-template-columns:120px 1fr 120px;gap:0;background:var(--white);padding:12px 16px;font-size:12px;}
+        .wo-wrapper{font-weight:500;}
+        .wo-reason{color:var(--mid);font-weight:300;}
+        .wo-limit{color:var(--light);font-weight:300;text-align:right;}
+
+        .pension-proj-card{border:1px solid var(--pale);padding:20px;margin-bottom:8px;background:var(--white);}
+        .pp-type{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;}
+        .pp-simple{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;margin-bottom:12px;}
+        .pp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--pale);border:1px solid var(--pale);}
+        .pp-stat{background:var(--white);padding:10px 14px;}
+        .pp-stat .card-label{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;}
+        .pp-stat .card-value{font-size:16px;font-weight:300;}
+
+        .pension-rec-card{border:1px solid var(--pale);padding:16px 20px;margin-bottom:8px;background:var(--white);}
+        .pr-title{font-size:13px;font-weight:500;margin-bottom:6px;}
+        .pr-saving{font-size:12px;font-weight:500;color:var(--black);margin-bottom:4px;}
+        .pr-simple{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+
+        .fic-strategy-card{border:1px solid var(--pale);padding:20px;margin-bottom:8px;background:var(--white);}
+        .fs-name{font-size:13px;font-weight:500;margin-bottom:4px;}
+        .fs-tax{font-size:12px;font-weight:300;color:var(--mid);margin-bottom:6px;}
+        .fs-simple{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+
+        .iht-card{border:1px solid var(--pale);padding:20px;background:var(--white);margin-bottom:8px;}
+        .iht-card .card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;}
+
+        .breakdown-list{list-style:none;padding:0;margin:0;}
+        .breakdown-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pale);font-size:13px;}
+        .breakdown-item:last-child{border-bottom:none;}
+        .breakdown-label{color:var(--mid);font-weight:300;}
+        .breakdown-value{font-weight:500;}
+
+        .company-card{border:1px solid var(--pale);padding:16px;margin-bottom:12px;}
+        .company-card h4{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:10px;}
+        .company-detail{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;}
+        .company-detail .cd-label{color:var(--mid);font-weight:300;}
+        .company-detail .cd-value{font-weight:500;}
+
+        .profile-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+        .meta-item{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;}
+        .meta-item span{font-weight:500;color:var(--black);}
+        .meta-item em{font-weight:300;color:var(--light);font-style:normal;}
+
+        .aa-bar{margin-top:12px;}
+        .aa-bar-label{font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+        .aa-bar-track{height:6px;background:var(--pale);width:100%;}
+        .aa-bar-fill{height:100%;background:var(--black);}
+        .aa-bar-numbers{display:flex;justify-content:space-between;font-size:11px;color:var(--mid);font-weight:300;margin-top:4px;}
+
+        .action-bar-top{display:flex;gap:12px;margin-bottom:24px;}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
+                <span class="brand-icon">+</span>
+                <span class="brand-text">GroPro</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/documents">Upload</a>
+            <a href="/fic/">FIC</a>
+            <a href="/investments/">Investments</a>
+            <a href="/marketplace">Advisors</a>
+            <a href="/onboarding">Edit Profile</a>
+            <a href="/auth/logout" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Welcome, {{ first_name }}</h1>
+            <p>Your complete wealth analysis &mdash; HMRC 2024/25 rules applied</p>
+        </div>
+
+        <div class="action-bar-top">
+            <a href="/documents" class="btn btn-primary" data-testid="link-upload-documents">Upload New Documents</a>
+            <a href="/onboarding" class="btn btn-outline" data-testid="link-edit-profile">Edit Profile</a>
+        </div>
+
+        {% if personal %}
+        <div class="profile-meta">
+            {% if personal.age_range %}<div class="meta-item"><em>Age</em> <span>{{ personal.age_range }}</span></div>{% endif %}
+            {% if personal.marital_status %}<div class="meta-item"><em>Status</em> <span>{{ personal.marital_status|replace('_',' ')|title }}</span></div>{% endif %}
+            {% if personal.dependants and personal.dependants != '0' %}<div class="meta-item"><em>Dependants</em> <span>{{ personal.dependants }}</span></div>{% endif %}
+            {% if tax_status.filing %}<div class="meta-item"><em>Tax Filing</em> <span>{{ tax_status.filing|replace('_',' ')|title }}</span></div>{% endif %}
+            {% if tax_status.tax_code %}<div class="meta-item"><em>Tax Code</em> <span>{{ tax_status.tax_code }}</span></div>{% endif %}
+            {% if tax_status.student_loan and tax_status.student_loan != 'none' %}<div class="meta-item"><em>Student Loan</em> <span>{{ tax_status.student_loan|replace('_',' ')|title }}</span></div>{% endif %}
+        </div>
+        {% endif %}
+
+        {% if roles %}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;">
+            {% for role in roles %}
+            <span class="badge badge-type" data-testid="badge-role-{{ role }}">{{ role|replace('_', ' ')|title }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 1: INCOME & TAX FORECAST (LEAD) ========== -->
+        {% if tax_forecast %}
+        <div class="dash-section" data-testid="section-tax-forecast">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Income &amp; Tax Liability Forecast</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body open">
+                <div class="forecast-grid">
+                    <div class="forecast-hero">
+                        <div class="card-label">Projected Take-Home Pay (2024/25)</div>
+                        <div class="card-value" data-testid="text-take-home">{{ tax_forecast.take_home|mn }}</div>
+                    </div>
+                    <div class="forecast-cell">
+                        <div class="card-label">Gross Income</div>
+                        <div class="card-value" data-testid="text-gross-income">{{ tax_forecast.gross_income|mn }}</div>
+                    </div>
+                    <div class="forecast-cell">
+                        <div class="card-label">Total Tax Liability</div>
+                        <div class="card-value" data-testid="text-total-tax">{{ tax_forecast.total_tax|mn }}</div>
+                    </div>
+                    <div class="forecast-cell">
+                        <div class="card-label">Income Tax (ITA 2007)</div>
+                        <div class="card-value">{{ tax_forecast.income_tax|mn }}</div>
+                    </div>
+                    <div class="forecast-cell">
+                        <div class="card-label">National Insurance</div>
+                        <div class="card-value">{{ tax_forecast.national_insurance|mn }}</div>
+                    </div>
+                    {% if tax_forecast.dividend_tax > 0 %}
+                    <div class="forecast-cell">
+                        <div class="card-label">Dividend Tax (ITTOIA 2005)</div>
+                        <div class="card-value">{{ tax_forecast.dividend_tax|mn }}</div>
+                    </div>
+                    {% endif %}
+                    {% if tax_forecast.student_loan > 0 %}
+                    <div class="forecast-cell">
+                        <div class="card-label">Student Loan</div>
+                        <div class="card-value">{{ tax_forecast.student_loan|mn }}</div>
+                    </div>
+                    {% endif %}
+                    {% if tax_forecast.child_benefit_charge > 0 %}
+                    <div class="forecast-cell">
+                        <div class="card-label">HICBC (FA 2012 s.681B)</div>
+                        <div class="card-value">{{ tax_forecast.child_benefit_charge|mn }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="forecast-cell">
+                        <div class="card-label">Effective Rate</div>
+                        <div class="card-value" data-testid="text-effective-rate">{{ tax_forecast.effective_rate }}%</div>
+                    </div>
+                    <div class="forecast-cell">
+                        <div class="card-label">Marginal Rate</div>
+                        <div class="card-value">{{ (tax_forecast.marginal_rate * 100)|int }}%</div>
+                    </div>
+                    {% if tax_forecast.pension_relief > 0 %}
+                    <div class="forecast-cell">
+                        <div class="card-label">Pension Tax Relief (FA 2004 s.188)</div>
+                        <div class="card-value">{{ tax_forecast.pension_relief|mn }}</div>
+                    </div>
+                    {% endif %}
+                    {% if tax_forecast.pa_lost > 0 %}
+                    <div class="forecast-cell">
+                        <div class="card-label">Personal Allowance Lost</div>
+                        <div class="card-value">{{ tax_forecast.pa_lost|mn }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if tax_forecast.pa_taper_detail %}
+                <div class="forecast-detail">{{ tax_forecast.pa_taper_detail }}</div>
+                {% endif %}
+
+                {% if tax_forecast.tax_paid_last_year > 0 %}
+                <div style="margin-top:12px;padding:16px;border:1px solid var(--pale);background:var(--bg);font-size:13px;font-weight:300;color:var(--mid);line-height:1.7;">
+                    <strong>Year-on-Year:</strong> Tax paid last year: {{ tax_forecast.tax_paid_last_year|mn }}.
+                    Projected this year: {{ tax_forecast.total_tax|mn }}.
+                    {% if tax_forecast.tax_change > 0 %}
+                    Increase of {{ tax_forecast.tax_change|mn }}.
+                    {% elif tax_forecast.tax_change < 0 %}
+                    Decrease of {{ (-tax_forecast.tax_change)|mn }}.
+                    {% else %}
+                    No change.
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Income by source -->
+                {% if income_display %}
+                <div style="margin-top:16px;">
+                    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;">Income by Source</div>
+                    <ul class="breakdown-list">
+                        {% for stream in income_display %}
+                        <li class="breakdown-item" data-testid="income-stream-{{ loop.index }}">
+                            <span class="breakdown-label">{{ stream.label }}</span>
+                            <span class="breakdown-value">{{ stream.amount|mn }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Estimated annual expenses -->
+                {% if annual_expenses > 0 %}
+                <div style="margin-top:16px;">
+                    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;">Estimated Annual Debt Servicing</div>
+                    <div style="font-size:20px;font-weight:300;">{{ annual_expenses|mn }}</div>
+                </div>
+                {% endif %}
+
+                <div class="forecast-monthly">
+                    <h4>Monthly Breakdown</h4>
+                    <div class="forecast-grid" style="margin-bottom:0;">
+                        <div class="forecast-cell">
+                            <div class="card-label">Monthly Take-Home</div>
+                            <div class="card-value" data-testid="text-monthly-take-home">{{ tax_forecast.monthly.take_home|mn }}</div>
+                        </div>
+                        <div class="forecast-cell">
+                            <div class="card-label">Monthly Tax</div>
+                            <div class="card-value">{{ tax_forecast.monthly.total_tax|mn }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax due dates -->
+                {% if tax_due_dates %}
+                <div class="due-dates">
+                    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;">Key Tax Dates</div>
+                    {% for dd in tax_due_dates %}
+                    <div class="due-date-item" data-testid="due-date-{{ loop.index }}">
+                        <span class="dd-date">{{ dd.date }}</span>
+                        <span class="dd-desc">{{ dd.description }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 2: PENSION MODELLING ========== -->
+        {% if pension_analysis %}
+        <div class="dash-section" data-testid="section-pensions">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Pension Modelling</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% if enhanced_pension %}
+                <div style="margin-bottom:16px;">
+                    <div class="forecast-grid" style="margin-bottom:0;">
+                        <div class="forecast-cell">
+                            <div class="card-label">Annual Allowance (FA 2004 s.228)</div>
+                            <div class="card-value">{{ enhanced_pension.annual_allowance|mn }}</div>
+                        </div>
+                        <div class="forecast-cell">
+                            <div class="card-label">Total Contributions</div>
+                            <div class="card-value">{{ enhanced_pension.total_contributions|mn }}</div>
+                        </div>
+                        <div class="forecast-cell">
+                            <div class="card-label">Unused Allowance</div>
+                            <div class="card-value">{{ enhanced_pension.unused_allowance|mn }}</div>
+                        </div>
+                        <div class="forecast-cell">
+                            <div class="card-label">Marginal Rate</div>
+                            <div class="card-value">{{ (enhanced_pension.marginal_rate * 100)|int }}%</div>
+                        </div>
+                    </div>
+
+                    {% if enhanced_pension.taper_detail %}
+                    <div class="forecast-detail">{{ enhanced_pension.taper_detail }}</div>
+                    {% endif %}
+
+                    {% if enhanced_pension.charge_detail %}
+                    <div class="forecast-detail" style="margin-top:8px;">{{ enhanced_pension.charge_detail }}</div>
+                    {% endif %}
+
+                    {% if enhanced_pension.pa_recovery_detail %}
+                    <div class="forecast-detail" style="margin-top:8px;">{{ enhanced_pension.pa_recovery_detail }}</div>
+                    {% endif %}
+
+                    {% if enhanced_pension.excess_charge > 0 %}
+                    <div style="margin-top:8px;padding:12px 16px;border:1px solid var(--black);font-size:13px;font-weight:500;">
+                        Annual Allowance Charge: {{ enhanced_pension.excess_charge|mn }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="aa-bar">
+                    <div class="aa-bar-label">Annual Allowance Used</div>
+                    {% set aa_pct = (pension_analysis.total_contributions / pension_analysis.annual_allowance * 100) if pension_analysis.annual_allowance > 0 else 0 %}
+                    {% set aa_pct_capped = [aa_pct, 100] | min %}
+                    <div class="aa-bar-track"><div class="aa-bar-fill" style="width:{{ aa_pct_capped }}%"></div></div>
+                    <div class="aa-bar-numbers">
+                        <span>{{ pension_analysis.total_contributions|mn }} used</span>
+                        <span>{{ pension_analysis.annual_allowance|mn }} limit</span>
+                    </div>
+                    {% if pension_analysis.unused_allowance > 0 %}
+                    <div style="font-size:12px;color:var(--mid);font-weight:300;margin-top:6px;">{{ pension_analysis.unused_allowance|mn }} unused allowance remaining (FA 2004, s.228). Carry-forward available under s.186.</div>
+                    {% endif %}
+                    {% if pension_analysis.aa_charge_risk %}
+                    <div style="font-size:12px;font-weight:500;color:var(--black);margin-top:6px;">Warning: Contributions exceed Annual Allowance. Annual Allowance Charge applies under FA 2004, s.227.</div>
+                    {% endif %}
+                </div>
+
+                {% if pension_analysis.projections %}
+                <div style="margin-top:16px;">
+                {% for proj in pension_analysis.projections %}
+                <div class="pension-proj-card" data-testid="pension-proj-{{ loop.index }}">
+                    <div class="pp-type">{{ proj.scheme_type|default(proj.type|default('Pension'), true)|replace('_',' ')|upper }}</div>
+                    <div class="pp-simple">{{ proj.simple_explanation }}</div>
+                    <div class="pp-stats">
+                        {% if proj.projected_annual_pension is defined and proj.projected_annual_pension %}
+                        <div class="pp-stat">
+                            <div class="card-label">Annual Pension</div>
+                            <div class="card-value">{{ proj.projected_annual_pension|mn }}</div>
+                        </div>
+                        {% endif %}
+                        {% if proj.projected_lump_sum is defined and proj.projected_lump_sum %}
+                        <div class="pp-stat">
+                            <div class="card-label">Tax-Free Lump Sum</div>
+                            <div class="card-value">{{ proj.projected_lump_sum|mn }}</div>
+                        </div>
+                        {% endif %}
+                        {% if proj.projected_value is defined and proj.projected_value %}
+                        <div class="pp-stat">
+                            <div class="card-label">Projected Pot</div>
+                            <div class="card-value">{{ proj.projected_value|mn }}</div>
+                        </div>
+                        {% endif %}
+                        {% if proj.tax_free_lump_sum is defined and proj.tax_free_lump_sum %}
+                        <div class="pp-stat">
+                            <div class="card-label">25% Tax-Free</div>
+                            <div class="card-value">{{ proj.tax_free_lump_sum|mn }}</div>
+                        </div>
+                        {% endif %}
+                        {% if proj.annual_drawdown_4pct is defined and proj.annual_drawdown_4pct %}
+                        <div class="pp-stat">
+                            <div class="card-label">Annual Drawdown (4%)</div>
+                            <div class="card-value">{{ proj.annual_drawdown_4pct|mn }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if pension_analysis.recommendations %}
+                <div style="margin-top:16px;">
+                    {% for rec in pension_analysis.recommendations %}
+                    <div class="pension-rec-card" data-testid="pension-rec-{{ loop.index }}">
+                        <div class="pr-title">{{ rec.title }}</div>
+                        {% if rec.saving > 0 %}
+                        <div class="pr-saving">Potential saving: {{ rec.saving|mn }}/year</div>
+                        {% elif rec.saving < 0 %}
+                        <div class="pr-saving" style="color:var(--mid);">Potential charge: {{ rec.saving|abs|mn }}</div>
+                        {% endif %}
+                        <div class="pr-simple">{{ rec.simple }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 3: IR35 COMPLIANCE (if applicable) ========== -->
+        {% if ir35_result %}
+        <div class="dash-section" data-testid="section-ir35">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>IR35 Compliance Assessment</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                <div class="ir35-card">
+                    <div class="ir35-risk {{ ir35_result.risk_level }}" data-testid="text-ir35-risk">
+                        Risk: {{ ir35_result.risk_level|upper }} ({{ ir35_result.risk_score }}%)
+                    </div>
+
+                    {% if ir35_result.single_client_warning %}
+                    <div style="padding:12px 16px;border:1px solid var(--black);margin-bottom:12px;font-size:13px;font-weight:500;">
+                        Single-client arrangement detected. HMRC views single-client contracts as a strong indicator of employment under ITEPA 2003 Chapter 10.
+                    </div>
+                    {% endif %}
+
+                    {% for factor in ir35_result.factors %}
+                    <div class="ir35-factor">
+                        <span class="ir35-factor-q">{{ factor.factor }}</span>
+                        <span class="ir35-factor-a">
+                            {% if factor.answer is none %}Not assessed{% elif factor.answer %}Yes{% else %}No{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="ir35-legislation">{{ ir35_result.legislation }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 4: MRI SCORE ========== -->
+        {% if mri %}
+        <div class="dash-section" data-testid="section-mri-score">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Financial MRI Score</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                <div class="mri-hero">
+                    <div class="mri-ring">
+                        {% set score = mri.mri_score %}
+                        {% set circumference = 2 * 3.14159 * 50 %}
+                        {% set dash = circumference * score / 100 %}
+                        <svg viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pale)" stroke-width="6"/>
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--black)" stroke-width="6"
+                                    stroke-dasharray="{{ dash }} {{ circumference }}"
+                                    stroke-dashoffset="0"
+                                    transform="rotate(-90 60 60)"
+                                    stroke-linecap="butt"/>
+                        </svg>
+                        <div class="mri-ring-text">
+                            <span class="mri-ring-score" data-testid="text-mri-score">{{ score }}</span>
+                            <span class="mri-ring-label">/ 100</span>
+                        </div>
+                    </div>
+                    <div class="mri-summary">
+                        {% if score >= 80 %}
+                        <p>Your finances are well-optimised. Minor adjustments below could further reduce your tax burden.</p>
+                        {% elif score >= 60 %}
+                        <p>There are clear areas where you are paying more tax than required under current HMRC rules. The sections below identify each one with the relevant legislation.</p>
+                        {% elif score >= 40 %}
+                        <p>Significant tax relief and allowances are going unused. Review each section below for the specific HMRC provisions that apply to your position.</p>
+                        {% else %}
+                        <p>Your financial position requires urgent review. Multiple HMRC allowances and reliefs are not being utilised. Each section below details the relevant rules and potential savings.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 5: FINANCIAL HEALTH AREAS ========== -->
+        {% if mri and mri.explanations %}
+        <div class="dash-section" data-testid="section-sub-scores">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Financial Health Areas</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% set explanations = mri.explanations %}
+                {% set score_order = ["tax_efficiency", "pension_health", "debt_management", "investment_diversification", "structure_optimisation", "protection", "income_stability", "wealth_growth"] %}
+                {% for key in score_order %}
+                    {% set ex = explanations[key] %}
+                    <div class="sub-score-panel" data-testid="panel-{{ key }}">
+                        <div class="sub-score-header" onclick="togglePanel(this); event.stopPropagation();">
+                            <div class="ss-left">
+                                <div class="ss-icon">
+                                    {% if key == 'tax_efficiency' %}T{% elif key == 'pension_health' %}P{% elif key == 'debt_management' %}D{% elif key == 'investment_diversification' %}I{% elif key == 'structure_optimisation' %}S{% elif key == 'protection' %}R{% elif key == 'income_stability' %}IS{% elif key == 'wealth_growth' %}W{% endif %}
+                                </div>
+                                <span class="ss-title">{{ ex.title }}</span>
+                                <span class="ss-score">{{ ex.score }} / 100</span>
+                                <div class="ss-bar-wrap">
+                                    <div class="ss-bar" style="width:{{ ex.score }}%"></div>
+                                </div>
+                            </div>
+                            <span class="ss-toggle">&#9660;</span>
+                        </div>
+                        <div class="sub-score-body" data-testid="body-{{ key }}">
+                            <div class="ss-detail"><strong>Summary:</strong> {{ ex.summary }}</div>
+                            <div class="ss-detail">{{ ex.detail }}</div>
+                            <div class="ss-action"><strong>Action Required:</strong> {{ ex.action }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 6: TAX LEAKAGE ========== -->
+        {% if mri and mri.leakage %}
+        <div class="dash-section" data-testid="section-leakage">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Tax Leakage Identified</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% for leak in mri.leakage %}
+                <div class="leakage-card" data-testid="leak-{{ loop.index }}">
+                    {{ leak }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 7: SCENARIO COMPARISON ========== -->
+        {% if scenarios %}
+        <div class="dash-section" data-testid="section-scenarios">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Scenario Comparison</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% for key, sc in scenarios.items() %}
+                <div class="scenario-panel" data-testid="card-scenario-{{ key }}">
+                    <div class="scenario-head" onclick="togglePanel(this); event.stopPropagation();">
+                        <div>
+                            <span class="sc-name">{{ sc.name }}</span>
+                            {% if sc.annual_tax_saving > 0 %}
+                            <span class="sc-saving">&mdash; saves {{ sc.annual_tax_saving|mn }}/year</span>
+                            {% endif %}
+                        </div>
+                        <span class="ss-toggle">&#9660;</span>
+                    </div>
+                    <div class="scenario-body" data-testid="body-scenario-{{ key }}">
+                        <div class="sc-simple">{{ sc.simple }}</div>
+
+                        {% if sc.projections %}
+                        <div class="sc-projections">
+                            {% for period, value in sc.projections.items() %}
+                            <div class="sc-proj-cell">
+                                <div class="card-label">{{ period }}</div>
+                                <div class="card-value">{{ value|mn }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if sc.steps %}
+                        <ul class="sc-steps">
+                            {% for step in sc.steps %}
+                            <li data-testid="step-{{ key }}-{{ loop.index }}">{{ step }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 8: INVESTMENT RECOMMENDATIONS ========== -->
+        {% if recommendations %}
+        <div class="dash-section" data-testid="section-investments">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Investment Recommendations</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% for rec in recommendations %}
+                <div class="rec-card" data-testid="rec-{{ loop.index }}">
+                    <div class="rec-head">
+                        <span class="rec-title">{{ rec.title }}</span>
+                        <span class="rec-priority {{ rec.priority }}">{{ rec.priority }}</span>
+                    </div>
+                    {% if rec.saving and rec.saving > 0 %}
+                    <div class="rec-saving">Potential benefit: {{ rec.saving|mn }}/year</div>
+                    {% endif %}
+                    <div class="rec-simple">{{ rec.simple }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 9: CAPITAL ALLOCATION ========== -->
+        {% if cap_analysis %}
+        <div class="dash-section" data-testid="section-capital-allocation">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Capital Allocation Priorities</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% if cap_analysis.priorities %}
+                {% for pri in cap_analysis.priorities %}
+                <div class="priority-card" data-testid="priority-{{ loop.index }}">
+                    <span class="pri-order">{{ pri.order }}</span>
+                    <span class="pri-title">{{ pri.title }}</span>
+                    {% if pri.amount > 0 %}
+                    <div class="pri-amount">{{ pri.amount|mn }}</div>
+                    {% endif %}
+                    <div class="pri-simple">{{ pri.simple }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% if cap_analysis.wrapper_order %}
+                <div style="margin-top:16px;">
+                    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;">Tax Wrapper Priority Order</div>
+                    <div class="wrapper-order">
+                        {% for wo in cap_analysis.wrapper_order %}
+                        <div class="wo-row" data-testid="wrapper-order-{{ loop.index }}">
+                            <span class="wo-wrapper">{{ wo.wrapper }}</span>
+                            <span class="wo-reason">{{ wo.reason }}</span>
+                            <span class="wo-limit">{{ wo.annual_limit }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 10: FIC OPTIMISATION ========== -->
+        {% if fic_analysis %}
+        <div class="dash-section" data-testid="section-fic">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Family Investment Company</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% for fic in fic_analysis %}
+                    {% if fic.strategies %}
+                    <div style="margin-bottom:16px;">
+                        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);margin-bottom:8px;">Dividend Strategies</div>
+                        {% for strat in fic.strategies %}
+                        <div class="fic-strategy-card" data-testid="fic-strategy-{{ loop.index }}">
+                            <div class="fs-name">{{ strat.name }}</div>
+                            <div class="fs-tax">Dividend tax: {{ strat.total_dividend_tax|mn }}</div>
+                            <div class="fs-simple">{{ strat.simple }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if fic.income_splitting and fic.income_splitting.available %}
+                    <div class="fic-strategy-card" data-testid="fic-income-splitting">
+                        <div class="fs-name">Income Splitting</div>
+                        {% if fic.income_splitting.saving > 0 %}
+                        <div class="fs-tax">Annual saving: {{ fic.income_splitting.saving|mn }}</div>
+                        {% endif %}
+                        <div class="fs-simple">{{ fic.income_splitting.simple }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if fic.iht_planning %}
+                    <div class="iht-card" data-testid="fic-iht">
+                        <div class="card-label">Inheritance Tax Planning (IHTA 1984)</div>
+                        <div style="font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;margin-top:8px;">{{ fic.iht_planning.simple }}</div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 11: INVESTMENT WRAPPERS ========== -->
+        {% if wrapper_display %}
+        <div class="dash-section" data-testid="section-wrappers">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Investment Wrappers</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                <ul class="breakdown-list">
+                    {% for w in wrapper_display %}
+                    <li class="breakdown-item" data-testid="wrapper-{{ loop.index }}">
+                        <span class="breakdown-label">{{ w.label }}</span>
+                        <span class="breakdown-value">{{ w.value|mn }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 12: DEBT BREAKDOWN ========== -->
+        {% if debt_display %}
+        <div class="dash-section" data-testid="section-debts">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Debt Breakdown</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                <ul class="breakdown-list">
+                    {% for d in debt_display %}
+                    <li class="breakdown-item" data-testid="debt-{{ loop.index }}">
+                        <span class="breakdown-label">{{ d.label }}</span>
+                        <span class="breakdown-value">{{ d.balance|mn }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 13: COMPANY STRUCTURES ========== -->
+        {% if company_display %}
+        <div class="dash-section" data-testid="section-companies">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Company Structures</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% for c in company_display %}
+                <div class="company-card">
+                    <h4>{{ c.type if c.type else 'Company ' ~ loop.index }}</h4>
+                    <div class="company-detail"><span class="cd-label">Your Shareholding</span><span class="cd-value">{{ c.shareholding }}%</span></div>
+                    <div class="company-detail"><span class="cd-label">Other Shareholders</span><span class="cd-value">{{ c.other_shareholders }}</span></div>
+                    <div class="company-detail"><span class="cd-label">Annual Turnover</span><span class="cd-value">{{ c.turnover|mn }}</span></div>
+                    <div class="company-detail"><span class="cd-label">Retained Profits</span><span class="cd-value">{{ c.retained|mn }}</span></div>
+                    <div class="company-detail"><span class="cd-label">Dividends Paid</span><span class="cd-value">{{ c.dividends|mn }}</span></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 14: PENSION CURRENT VALUES ========== -->
+        {% if pension_display %}
+        <div class="dash-section" data-testid="section-pension-values">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Current Pension Values</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                {% for p in pension_display %}
+                <div class="company-card">
+                    <h4>{{ p.type if p.type else 'Pension ' ~ loop.index }}</h4>
+                    <div class="company-detail"><span class="cd-label">Current Value</span><span class="cd-value">{{ p.value|mn }}</span></div>
+                    <div class="company-detail"><span class="cd-label">Annual Contribution</span><span class="cd-value">{{ p.contribution|mn }}</span></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== SECTION 15: NET WORTH (BOTTOM) ========== -->
+        {% if mri and mri.net_worth %}
+        {% set nw = mri.net_worth %}
+        <div class="dash-section" data-testid="section-net-worth">
+            <div class="section-heading" onclick="toggleSection(this)">
+                <h2>Net Worth</h2>
+                <span class="section-toggle">&#9660;</span>
+            </div>
+            <div class="section-body">
+                <div class="nw-grid">
+                    <div class="nw-hero">
+                        <div class="card-label">Net Worth</div>
+                        <div class="card-value" data-testid="text-net-worth">{{ nw.net_worth|mn }}</div>
+                    </div>
+                    <div class="nw-cell">
+                        <div class="card-label">Pension Assets</div>
+                        <div class="card-value" data-testid="text-pension-assets">{{ nw.pension_assets|mn }}</div>
+                    </div>
+                    <div class="nw-cell">
+                        <div class="card-label">Investments</div>
+                        <div class="card-value" data-testid="text-investment-assets">{{ nw.investment_assets|mn }}</div>
+                    </div>
+                    <div class="nw-cell">
+                        <div class="card-label">Company Equity</div>
+                        <div class="card-value" data-testid="text-company-equity">{{ nw.company_equity|mn }}</div>
+                    </div>
+                    <div class="nw-cell">
+                        <div class="card-label">Total Assets</div>
+                        <div class="card-value">{{ nw.total_assets|mn }}</div>
+                    </div>
+                    <div class="nw-cell">
+                        <div class="card-label">Total Liabilities</div>
+                        <div class="card-value">{{ nw.total_liabilities|mn }}</div>
+                    </div>
+                    <div class="nw-cell">
+                        <div class="card-label">Annual Income</div>
+                        <div class="card-value">{{ total_income|mn }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <p style="font-size:11px;color:var(--light);margin-top:24px;text-transform:uppercase;letter-spacing:0.04em;">Analysis based on HMRC 2024/25 tax year rules. This does not constitute regulated financial advice. Consult a qualified professional before acting.</p>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 GroPro Healthcare Holding Co.</p>
+    </footer>
+
+    <script>
+    function toggleSection(heading) {
+        var body = heading.nextElementSibling;
+        var toggle = heading.querySelector('.section-toggle');
+        body.classList.toggle('open');
+        if (toggle) toggle.classList.toggle('open');
+    }
+    function togglePanel(header) {
+        var body = header.nextElementSibling;
+        var toggle = header.querySelector('.ss-toggle');
+        body.classList.toggle('open');
+        if (toggle) toggle.classList.toggle('open');
+    }
+    </script>
+</body>
+</html>
